@@ -5,14 +5,18 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import com.example.pulse.R
 import com.example.pulse.databinding.FragmentLibraryBinding
 import com.example.pulse.data.TrackMetadataReader
+import androidx.recyclerview.widget.LinearLayoutManager
 
 class LibraryFragment: Fragment(R.layout.fragment_library) {
     private var _binding: FragmentLibraryBinding? = null
     private val binding get() = _binding!!
+
+    private lateinit var trackAdapter: TrackAdapter
 
     private val audioPicker = registerForActivityResult(ActivityResultContracts.OpenDocument()){
         uri: Uri? ->
@@ -28,11 +32,18 @@ class LibraryFragment: Fragment(R.layout.fragment_library) {
 
     }
 
+    private fun updateEmptyState() {
+        val isEmpty = trackAdapter.itemCount == 0
+
+        binding.emptyStateText.isVisible = isEmpty
+        binding.tracksRecyclerView.isVisible = !isEmpty
+    }
 
     private fun onAudioSelected(uri: Uri) {
        try {
            val reader = TrackMetadataReader(requireContext())
            val track = reader.readTrack(uri)
+           trackAdapter.addTrack(track)
 
            android.util.Log.d("Pulsed", "Название: ${track.title}")
            android.util.Log.d("Pulsed", "Исполнитель: ${track.artist}")
@@ -55,6 +66,13 @@ class LibraryFragment: Fragment(R.layout.fragment_library) {
         super.onViewCreated(view, savedInstanceState)
 
         _binding = FragmentLibraryBinding.bind(view)
+
+        trackAdapter = TrackAdapter()
+
+        binding.tracksRecyclerView.apply {
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = trackAdapter
+        }
 
         binding.addMusicButton.setOnClickListener {
             audioPicker.launch(arrayOf("audio/*"))
