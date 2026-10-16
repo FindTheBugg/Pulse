@@ -8,6 +8,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import com.example.pulse.R
 import com.example.pulse.databinding.FragmentLibraryBinding
+import com.example.pulse.data.TrackMetadataReader
 
 class LibraryFragment: Fragment(R.layout.fragment_library) {
     private var _binding: FragmentLibraryBinding? = null
@@ -29,11 +30,22 @@ class LibraryFragment: Fragment(R.layout.fragment_library) {
 
 
     private fun onAudioSelected(uri: Uri) {
-        Toast.makeText(
-            requireContext(),
-            "Аудиофайл выбран:\\n\$uri",
-            Toast.LENGTH_SHORT
-        ).show()
+       try {
+           val reader = TrackMetadataReader(requireContext())
+           val track = reader.readTrack(uri)
+
+           android.util.Log.d("Pulsed", "Название: ${track.title}")
+           android.util.Log.d("Pulsed", "Исполнитель: ${track.artist}")
+           android.util.Log.d("Pulsed", "Длительность: ${track.duration}")
+
+       } catch (e: Exception) {
+           Toast.makeText(
+               requireContext(),
+               "Не удалось прочитать аудиофайл",
+               Toast.LENGTH_SHORT
+           ).show()
+           android.util.Log.e("Pulsed", "Ошибка чтения аудиофайла", e)
+       }
     }
 
     override fun onViewCreated(
