@@ -11,6 +11,13 @@ import com.example.pulse.R
 import com.example.pulse.databinding.FragmentLibraryBinding
 import com.example.pulse.data.TrackMetadataReader
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import com.example.pulse.data.PulseDatabase
+import com.example.pulse.data.toEntity
+import com.example.pulse.data.toTrack
 
 class LibraryFragment: Fragment(R.layout.fragment_library) {
     private var _binding: FragmentLibraryBinding? = null
@@ -32,6 +39,21 @@ class LibraryFragment: Fragment(R.layout.fragment_library) {
 
     }
 
+    private fun loadTracks() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val tracks = withContext(Dispatchers.IO) {
+                PulseDatabase
+                    .getDatabase(requireContext())
+                    .trackDao()
+                    .getAllTracks()
+                    .map { it.toTrack() }
+            }
+
+            trackAdapter.setTracks(tracks)
+            updateEmptyState()
+        }
+    }
+
     private fun updateEmptyState() {
         val isEmpty = trackAdapter.itemCount == 0
 
@@ -43,7 +65,16 @@ class LibraryFragment: Fragment(R.layout.fragment_library) {
        try {
            val reader = TrackMetadataReader(requireContext())
            val track = reader.readTrack(uri)
-           trackAdapter.addTrack(track)
+
+           viewLifecycleOwner.lifecycleScope.launch {
+               withContext(Dispatchers.IO) {
+                   PulseDatabase
+                       .getDatabase(requireContext())
+                       .trackDao()
+                       .insertTrack(track.toEntity())
+               }
+               loadTracks()
+           }
 
            android.util.Log.d("Pulsed", "Название: ${track.title}")
            android.util.Log.d("Pulsed", "Исполнитель: ${track.artist}")
@@ -73,6 +104,8 @@ class LibraryFragment: Fragment(R.layout.fragment_library) {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = trackAdapter
         }
+
+        loadTracks()
 
         binding.addMusicButton.setOnClickListener {
             audioPicker.launch(arrayOf("audio/*"))

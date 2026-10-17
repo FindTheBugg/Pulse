@@ -1,4 +1,3 @@
-
 package com.example.pulse.UI.library
 
 import android.view.LayoutInflater
@@ -15,6 +14,13 @@ class TrackAdapter : RecyclerView.Adapter<TrackAdapter.TrackViewHolder>() {
         tracks.add(track)
         notifyItemInserted(tracks.lastIndex)
     }
+
+    fun setTracks(newTracks: List<Track>) {
+        tracks.clear()
+        tracks.addAll(newTracks)
+        notifyDataSetChanged()
+    }
+
 
     class TrackViewHolder(
         val binding: ItemTrackBinding
