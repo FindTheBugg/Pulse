@@ -6,7 +6,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.pulse.data.Track
 import com.example.pulse.databinding.ItemTrackBinding
 
-class TrackAdapter : RecyclerView.Adapter<TrackAdapter.TrackViewHolder>() {
+class TrackAdapter(
+    private val onTrackClick: (Track) -> Unit
+) : RecyclerView.Adapter<TrackAdapter.TrackViewHolder>() {
 
     private val tracks = mutableListOf<Track>()
 
@@ -49,6 +51,9 @@ class TrackAdapter : RecyclerView.Adapter<TrackAdapter.TrackViewHolder>() {
         holder.binding.tvTrackArtist.text = track.artist
         holder.binding.tvTrackDuration.text =
             formatDuration(track.duration)
+        holder.itemView.setOnClickListener {
+            onTrackClick(track)
+        }
     }
 
     override fun getItemCount(): Int = tracks.size

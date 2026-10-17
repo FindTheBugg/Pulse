@@ -1,5 +1,7 @@
+
 package com.example.pulse.UI.library
 
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
@@ -7,43 +9,97 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import com.example.pulse.R
-import com.example.pulse.databinding.FragmentLibraryBinding
-import com.example.pulse.data.TrackMetadataReader
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.pulse.R
+import com.example.pulse.data.MusicPlayerManager
+import com.example.pulse.data.PulseDatabase
+import com.example.pulse.data.TrackMetadataReader
+import com.example.pulse.data.toEntity
+import com.example.pulse.data.toTrack
+import com.example.pulse.databinding.FragmentLibraryBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import com.example.pulse.data.PulseDatabase
-import com.example.pulse.data.toEntity
-import com.example.pulse.data.toTrack
 
-class LibraryFragment: Fragment(R.layout.fragment_library) {
+class LibraryFragment : Fragment(R.layout.fragment_library) {
+
     private var _binding: FragmentLibraryBinding? = null
     private val binding get() = _binding!!
-
     private lateinit var trackAdapter: TrackAdapter
+    private var musicPlayerManager: MusicPlayerManager? = null
+    private val audioPicker =
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+            if (uri == null) {
+                Toast.makeText(
+                    requireContext(),
+                    "Файл не выбран",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@registerForActivityResult
+            }
 
-    private val audioPicker = registerForActivityResult(ActivityResultContracts.OpenDocument()){
-        uri: Uri? ->
-        if (uri != null) {
-            onAudioSelected(uri)
-        } else {
-            Toast.makeText(
-                requireContext(),
-                "Файл не выбран",
-                Toast.LENGTH_SHORT
-            ).show()
+            try {
+                requireContext().contentResolver.takePersistableUriPermission(
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+
+                val hasPermission = requireContext()
+                    .contentResolver
+                    .persistedUriPermissions
+                    .any { it.uri == uri && it.isReadPermission }
+
+                if (hasPermission) {
+                    onAudioSelected(uri)
+                } else {
+                    Toast.makeText(
+                        requireContext(),
+                        "Не удалось сохранить доступ к файлу",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(
+                    requireContext(),
+                    "Не удалось сохранить доступ к файлу",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
         }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        _binding = FragmentLibraryBinding.bind(view)
+        musicPlayerManager = MusicPlayerManager(requireContext())
+
+        trackAdapter = TrackAdapter { track ->
+            musicPlayerManager?.play(track.uri)
+        }
+
+        binding.tracksRecyclerView.apply {
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = trackAdapter
+        }
+
+        binding.addMusicButton.setOnClickListener {
+            audioPicker.launch(arrayOf("audio/*"))
+        }
+
+        binding.btnClearLibrary.setOnClickListener {
+            clearLibrary()
+        }
+
+        loadTracks()
     }
 
     private fun loadTracks() {
         viewLifecycleOwner.lifecycleScope.launch {
+            val context = requireContext()
+
             val tracks = withContext(Dispatchers.IO) {
-                PulseDatabase
-                    .getDatabase(requireContext())
+                PulseDatabase.getDatabase(context)
                     .trackDao()
                     .getAllTracks()
                     .map { it.toTrack() }
@@ -62,58 +118,91 @@ class LibraryFragment: Fragment(R.layout.fragment_library) {
     }
 
     private fun onAudioSelected(uri: Uri) {
-       try {
-           val reader = TrackMetadataReader(requireContext())
-           val track = reader.readTrack(uri)
+        val context = requireContext()
 
-           viewLifecycleOwner.lifecycleScope.launch {
-               withContext(Dispatchers.IO) {
-                   PulseDatabase
-                       .getDatabase(requireContext())
-                       .trackDao()
-                       .insertTrack(track.toEntity())
-               }
-               loadTracks()
-           }
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    val reader = TrackMetadataReader(context)
+                    val track = reader.readTrack(uri)
 
-           android.util.Log.d("Pulsed", "Название: ${track.title}")
-           android.util.Log.d("Pulsed", "Исполнитель: ${track.artist}")
-           android.util.Log.d("Pulsed", "Длительность: ${track.duration}")
+                    PulseDatabase.getDatabase(context)
+                        .trackDao()
+                        .insertTrack(track.toEntity())
+                }
 
-       } catch (e: Exception) {
-           Toast.makeText(
-               requireContext(),
-               "Не удалось прочитать аудиофайл",
-               Toast.LENGTH_SHORT
-           ).show()
-           android.util.Log.e("Pulsed", "Ошибка чтения аудиофайла", e)
-       }
+                loadTracks()
+            } catch (e: Exception) {
+                Toast.makeText(
+                    context,
+                    "Не удалось прочитать или сохранить аудиофайл",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
     }
 
-    override fun onViewCreated(
-        view: View,
-        savedInstanceState: Bundle?
-    ) {
-        super.onViewCreated(view, savedInstanceState)
+    private fun clearLibrary() {
+        musicPlayerManager?.stop()
 
-        _binding = FragmentLibraryBinding.bind(view)
+        val context = requireContext()
 
-        trackAdapter = TrackAdapter()
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val database = PulseDatabase.getDatabase(context)
+                val contentResolver = context.contentResolver
 
-        binding.tracksRecyclerView.apply {
-            layoutManager = LinearLayoutManager(requireContext())
-            adapter = trackAdapter
-        }
+                val savedTracks = withContext(Dispatchers.IO) {
+                    database.trackDao().getAllTracks()
+                }
 
-        loadTracks()
+                // Освобождаем доступ к каждому сохранённому файлу.
+                savedTracks
+                    .map { Uri.parse(it.uri) }
+                    .distinct()
+                    .forEach { uri ->
+                        try {
+                            contentResolver.releasePersistableUriPermission(
+                                uri,
+                                Intent.FLAG_GRANT_READ_URI_PERMISSION
+                            )
+                        } catch (_: SecurityException) {
+                            // Продолжаем очистку, даже если разрешение уже недоступно.
+                        }
+                    }
 
-        binding.addMusicButton.setOnClickListener {
-            audioPicker.launch(arrayOf("audio/*"))
+                // Удаляем все записи один раз, после обработки URI.
+                withContext(Dispatchers.IO) {
+                    database.trackDao().deleteAllTracks()
+                }
+
+                trackAdapter.setTracks(emptyList())
+                updateEmptyState()
+
+                Toast.makeText(
+                    context,
+                    "Библиотека очищена",
+                    Toast.LENGTH_SHORT
+                ).show()
+            } catch (e: Exception) {
+                Toast.makeText(
+                    context,
+                    "Не удалось очистить библиотеку",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
         }
     }
 
     override fun onDestroyView() {
+        binding.tracksRecyclerView.adapter = null
         _binding = null
         super.onDestroyView()
+    }
+
+    override fun onDestroy() {
+        musicPlayerManager?.release()
+        musicPlayerManager = null
+        super.onDestroy()
     }
 }
