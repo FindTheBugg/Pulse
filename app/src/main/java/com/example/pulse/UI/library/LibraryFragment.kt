@@ -1,4 +1,3 @@
-
 package com.example.pulse.UI.library
 
 import android.content.Intent
@@ -10,6 +9,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.pulse.R
 import com.example.pulse.data.MusicPlayerManager
@@ -21,6 +21,7 @@ import com.example.pulse.databinding.FragmentLibraryBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import androidx.lifecycle.Lifecycle
 
 class LibraryFragment : Fragment(R.layout.fragment_library) {
 
@@ -44,12 +45,10 @@ class LibraryFragment : Fragment(R.layout.fragment_library) {
                     uri,
                     Intent.FLAG_GRANT_READ_URI_PERMISSION
                 )
-
                 val hasPermission = requireContext()
                     .contentResolver
                     .persistedUriPermissions
                     .any { it.uri == uri && it.isReadPermission }
-
                 if (hasPermission) {
                     onAudioSelected(uri)
                 } else {
@@ -73,25 +72,50 @@ class LibraryFragment : Fragment(R.layout.fragment_library) {
 
         _binding = FragmentLibraryBinding.bind(view)
         musicPlayerManager = MusicPlayerManager(requireContext())
+        observePlayerState()
 
         trackAdapter = TrackAdapter { track ->
             musicPlayerManager?.play(track.uri)
         }
-
         binding.tracksRecyclerView.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = trackAdapter
         }
-
         binding.addMusicButton.setOnClickListener {
             audioPicker.launch(arrayOf("audio/*"))
         }
-
         binding.btnClearLibrary.setOnClickListener {
             clearLibrary()
         }
-
+        binding.btnPlayPause.setOnClickListener {
+            val playerManager = musicPlayerManager
+            if (playerManager == null || !playerManager.hasTrack) {
+                Toast.makeText(
+                    requireContext(),
+                    "Сначала выбери трек",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@setOnClickListener
+            }
+            val state = playerManager.playerState.value
+            if (state.isPlaying) {
+                playerManager.pause()
+            } else {
+                playerManager.resume()
+            }
+        }
         loadTracks()
+    }
+
+    private fun observePlayerState() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED){
+                musicPlayerManager?.playerState?.collect { state ->
+                    binding.btnPlayPause.text =
+                        if (state.isPlaying) "⏸\uFE0F Pause" else "▶\uFE0F Play"
+                }
+            }
+        }
     }
 
     private fun loadTracks() {
@@ -104,7 +128,6 @@ class LibraryFragment : Fragment(R.layout.fragment_library) {
                     .getAllTracks()
                     .map { it.toTrack() }
             }
-
             trackAdapter.setTracks(tracks)
             updateEmptyState()
         }
@@ -125,12 +148,10 @@ class LibraryFragment : Fragment(R.layout.fragment_library) {
                 withContext(Dispatchers.IO) {
                     val reader = TrackMetadataReader(context)
                     val track = reader.readTrack(uri)
-
                     PulseDatabase.getDatabase(context)
                         .trackDao()
                         .insertTrack(track.toEntity())
                 }
-
                 loadTracks()
             } catch (e: Exception) {
                 Toast.makeText(
@@ -151,12 +172,10 @@ class LibraryFragment : Fragment(R.layout.fragment_library) {
             try {
                 val database = PulseDatabase.getDatabase(context)
                 val contentResolver = context.contentResolver
-
                 val savedTracks = withContext(Dispatchers.IO) {
                     database.trackDao().getAllTracks()
                 }
 
-                // Освобождаем доступ к каждому сохранённому файлу.
                 savedTracks
                     .map { Uri.parse(it.uri) }
                     .distinct()
@@ -167,18 +186,15 @@ class LibraryFragment : Fragment(R.layout.fragment_library) {
                                 Intent.FLAG_GRANT_READ_URI_PERMISSION
                             )
                         } catch (_: SecurityException) {
-                            // Продолжаем очистку, даже если разрешение уже недоступно.
                         }
                     }
 
-                // Удаляем все записи один раз, после обработки URI.
                 withContext(Dispatchers.IO) {
                     database.trackDao().deleteAllTracks()
                 }
 
                 trackAdapter.setTracks(emptyList())
                 updateEmptyState()
-
                 Toast.makeText(
                     context,
                     "Библиотека очищена",

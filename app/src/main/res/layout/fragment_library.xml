@@ -32,17 +32,44 @@
         android:layout_marginTop="10dp"
         android:layout_marginBottom="30dp" />
 
-    <Button
-        android:id="@+id/addMusicButton"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="20dp"
-        android:text="Добавить музыку" />
+        android:orientation="vertical"
+        android:layout_marginTop="8dp">
 
-    <Button
-        android:id="@+id/btnClearLibrary"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Очистить библиотеку" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:weightSum="2">
+
+            <Button
+                android:id="@+id/addMusicButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:text="🔊Добавить музыку" />
+
+            <Button
+                android:id="@+id/btnClearLibrary"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:text="💀Очистить библиотеку" />
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btnPlayPause"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="▶ Play" />
+
+    </LinearLayout>
 
 </LinearLayout>
