@@ -89,6 +89,7 @@ class LibraryFragment : Fragment(R.layout.fragment_library) {
         }
         binding.btnPlayPause.setOnClickListener {
             val playerManager = musicPlayerManager
+
             if (playerManager == null || !playerManager.hasTrack) {
                 Toast.makeText(
                     requireContext(),
@@ -97,12 +98,20 @@ class LibraryFragment : Fragment(R.layout.fragment_library) {
                 ).show()
                 return@setOnClickListener
             }
+
             val state = playerManager.playerState.value
-            if (state.isPlaying) {
-                playerManager.pause()
-            } else {
-                playerManager.resume()
+            when {
+                state.isPlaying -> playerManager.pause()
+                state.isEnded -> playerManager.replay()
+                else -> playerManager.resume()
             }
+        }
+        binding.btnPrevious.setOnClickListener {
+            musicPlayerManager?.playPrevious()
+        }
+
+        binding.btnNext.setOnClickListener {
+            musicPlayerManager?.playNext()
         }
         loadTracks()
     }
@@ -129,6 +138,7 @@ class LibraryFragment : Fragment(R.layout.fragment_library) {
                     .map { it.toTrack() }
             }
             trackAdapter.setTracks(tracks)
+            musicPlayerManager?.setPlaylist(tracks)
             updateEmptyState()
         }
     }
@@ -185,8 +195,7 @@ class LibraryFragment : Fragment(R.layout.fragment_library) {
                                 uri,
                                 Intent.FLAG_GRANT_READ_URI_PERMISSION
                             )
-                        } catch (_: SecurityException) {
-                        }
+                        } catch (_: SecurityException) { }
                     }
 
                 withContext(Dispatchers.IO) {
