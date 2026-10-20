@@ -15,12 +15,22 @@ class MusicPlayerManager(context: Context) {
     private val _playerState = MutableStateFlow(PlayerState())
     val playerState: StateFlow<PlayerState> = _playerState.asStateFlow()
     private var tracks: List<Track> = emptyList()
+    var currentTrack: Track? = null
+        private set
     private var currentTrackIndex: Int = -1
     val hasTrack: Boolean
         get() = player.currentMediaItem != null
 
     init {
         player.addListener(object : Player.Listener {
+
+            override fun onMediaItemTransition(
+                mediaItem: MediaItem?,
+                reason: Int
+            ) {
+                updatePlayState()
+            }
+
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 updatePlayState()
             }
@@ -29,6 +39,10 @@ class MusicPlayerManager(context: Context) {
             }
             override fun onPlaybackStateChanged(playbackState: Int) {
                 updatePlayState()
+
+                if (playbackState == Player.STATE_ENDED) {
+                    playNext()
+                }
             }
         })
     }
@@ -42,7 +56,21 @@ class MusicPlayerManager(context: Context) {
     }
 
     fun setPlaylist(newTracks: List<Track>) {
+        val currentUri = player.currentMediaItem
+            ?.localConfiguration
+            ?.uri
+        val currentTrackStillExists = newTracks.any {
+            it.uri == currentUri
+        }
         tracks = newTracks
+        if (currentUri != null && !currentTrackStillExists) {
+            stop()
+            currentTrackIndex = -1
+            return
+        }
+        currentTrackIndex = tracks.indexOfFirst {
+            it.uri == currentUri
+        }
     }
 
     fun replay() {
@@ -59,6 +87,7 @@ class MusicPlayerManager(context: Context) {
         currentTrackIndex = tracks.indexOfFirst {
             it.uri == uri
         }
+        currentTrack = tracks.getOrNull(currentTrackIndex)
         val mediaItem = MediaItem.fromUri(uri)
         player.setMediaItem(mediaItem)
         player.prepare()
@@ -67,36 +96,30 @@ class MusicPlayerManager(context: Context) {
 
     fun playNext() {
         if (tracks.isEmpty()) return
-
-        val nextIndex = currentTrackIndex + 1
-
-        if (nextIndex < tracks.size) {
-            currentTrackIndex = nextIndex
-
-            val nextTrack = tracks[currentTrackIndex]
-            val mediaItem = MediaItem.fromUri(nextTrack.uri)
-
-            player.setMediaItem(mediaItem)
-            player.prepare()
-            player.play()
+        currentTrackIndex = if (currentTrackIndex in tracks.indices) {
+            (currentTrackIndex + 1) % tracks.size
+        } else {
+            0
         }
+        val nextTrack = tracks[currentTrackIndex]
+        currentTrack = nextTrack
+        player.setMediaItem(MediaItem.fromUri(nextTrack.uri))
+        player.prepare()
+        player.play()
     }
 
     fun playPrevious() {
         if (tracks.isEmpty()) return
-
-        val previousIndex = currentTrackIndex - 1
-
-        if (previousIndex >= 0) {
-            currentTrackIndex = previousIndex
-
-            val previousTrack = tracks[currentTrackIndex]
-            val mediaItem = MediaItem.fromUri(previousTrack.uri)
-
-            player.setMediaItem(mediaItem)
-            player.prepare()
-            player.play()
+        currentTrackIndex = if (currentTrackIndex in tracks.indices) {
+            (currentTrackIndex - 1 + tracks.size) % tracks.size
+        } else {
+            tracks.lastIndex
         }
+        val previousTrack = tracks[currentTrackIndex]
+        currentTrack = previousTrack
+        player.setMediaItem(MediaItem.fromUri(previousTrack.uri))
+        player.prepare()
+        player.play()
     }
 
     fun pause() {

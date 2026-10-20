@@ -9,7 +9,7 @@ import com.example.pulse.UI.library.LibraryFragment
 import com.example.pulse.UI.overview.OverviewFragment
 import com.example.pulse.UI.playlists.PlaylistsFragment
 import com.example.pulse.UI.settings.SettingsFragment
-
+import com.example.pulse.UI.player.PlayerFragment
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
@@ -27,6 +27,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_playlists -> PlaylistsFragment()
                 R.id.nav_overview -> OverviewFragment()
                 R.id.nav_settings -> SettingsFragment()
+                R.id.nav_player -> PlayerFragment()
                 else -> null
             }
 
