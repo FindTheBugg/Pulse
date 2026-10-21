@@ -18,6 +18,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.fragment.app.activityViewModels
 import com.example.pulse.UI.player.PlayerViewModel
 import com.example.pulse.data.TrackRepository
+import com.example.pulse.ui.library.TrackAdapter
 
 class LibraryFragment : Fragment(R.layout.fragment_library) {
 
@@ -102,10 +103,17 @@ class LibraryFragment : Fragment(R.layout.fragment_library) {
 
     private fun observePlayerState() {
         viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED){
-                playerViewModel.playerState.collect { state ->
-                    binding.btnPlayPause.text =
-                        if (state.isPlaying) "⏸\uFE0F Pause" else "▶\uFE0F Play"
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    playerViewModel.playerState.collect { state ->
+                        binding.btnPlayPause.text =
+                            if (state.isPlaying) "⏸\uFE0F Pause" else "▶\uFE0F Play"
+                    }
+                }
+                launch {
+                    playerViewModel.currentTrack.collect { track ->
+                        trackAdapter.setCurrentTrackId(track?.id)
+                    }
                 }
             }
         }

@@ -7,4 +7,5 @@
     <color name="text_primary">#F5F5F7</color>
     <color name="text_secondary">#A3A3B2</color>
     <color name="text_black">#000000</color>
+    <color name="track_playing_stroke">#1DB954</color>
 </resources>

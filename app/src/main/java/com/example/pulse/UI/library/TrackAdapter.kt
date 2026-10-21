@@ -1,8 +1,9 @@
-package com.example.pulse.UI.library
+package com.example.pulse.ui.library
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.example.pulse.R
 import com.example.pulse.data.Track
 import com.example.pulse.databinding.ItemTrackBinding
 
@@ -11,11 +12,7 @@ class TrackAdapter(
 ) : RecyclerView.Adapter<TrackAdapter.TrackViewHolder>() {
 
     private val tracks = mutableListOf<Track>()
-
-    fun addTrack(track: Track) {
-        tracks.add(track)
-        notifyItemInserted(tracks.lastIndex)
-    }
+    private var currentTrackId: String? = null
 
     fun setTracks(newTracks: List<Track>) {
         tracks.clear()
@@ -23,6 +20,16 @@ class TrackAdapter(
         notifyDataSetChanged()
     }
 
+    fun setCurrentTrackId(newId: String?) {
+        if (newId == currentTrackId) return
+
+        val oldIndex = tracks.indexOfFirst { it.id == currentTrackId }
+        val newIndex = tracks.indexOfFirst { it.id == newId }
+        currentTrackId = newId
+
+        if (oldIndex != -1) notifyItemChanged(oldIndex)
+        if (newIndex != -1) notifyItemChanged(newIndex)
+    }
 
     class TrackViewHolder(
         val binding: ItemTrackBinding
@@ -37,7 +44,6 @@ class TrackAdapter(
             parent,
             false
         )
-
         return TrackViewHolder(binding)
     }
 
@@ -49,8 +55,13 @@ class TrackAdapter(
 
         holder.binding.tvTrackTitle.text = track.title
         holder.binding.tvTrackArtist.text = track.artist
-        holder.binding.tvTrackDuration.text =
-            formatDuration(track.duration)
+        holder.binding.tvTrackDuration.text = formatDuration(track.duration)
+
+        holder.itemView.setBackgroundResource(
+            if (track.id == currentTrackId) R.drawable.bg_track_playing
+            else R.drawable.bg_track_normal
+        )
+
         holder.itemView.setOnClickListener {
             onTrackClick(track)
         }
@@ -62,7 +73,6 @@ class TrackAdapter(
         val totalSeconds = durationMs / 1000
         val minutes = totalSeconds / 60
         val seconds = totalSeconds % 60
-
         return "%02d:%02d".format(minutes, seconds)
     }
 }

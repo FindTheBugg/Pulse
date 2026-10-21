@@ -2,9 +2,10 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:layout_marginVertical="4dp"
     android:orientation="vertical"
     android:padding="16dp"
-    android:background="@color/app_background">
+    android:background="@drawable/bg_track_normal">
 
     <TextView
         android:id="@+id/tvTrackTitle"
