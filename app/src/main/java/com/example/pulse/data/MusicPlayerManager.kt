@@ -15,8 +15,8 @@ class MusicPlayerManager(context: Context) {
     private val _playerState = MutableStateFlow(PlayerState())
     val playerState: StateFlow<PlayerState> = _playerState.asStateFlow()
     private var tracks: List<Track> = emptyList()
-    var currentTrack: Track? = null
-        private set
+    private val _currentTrack = MutableStateFlow<Track?>(null)
+    val currentTrack: StateFlow<Track?> = _currentTrack.asStateFlow()
     private var currentTrackIndex: Int = -1
     val hasTrack: Boolean
         get() = player.currentMediaItem != null
@@ -81,13 +81,15 @@ class MusicPlayerManager(context: Context) {
     fun stop() {
         player.stop()
         player.clearMediaItems()
+        currentTrackIndex = -1
+        _currentTrack.value = null
     }
 
     fun play(uri: Uri) {
         currentTrackIndex = tracks.indexOfFirst {
             it.uri == uri
         }
-        currentTrack = tracks.getOrNull(currentTrackIndex)
+        _currentTrack.value = tracks.getOrNull(currentTrackIndex)
         val mediaItem = MediaItem.fromUri(uri)
         player.setMediaItem(mediaItem)
         player.prepare()
@@ -102,7 +104,7 @@ class MusicPlayerManager(context: Context) {
             0
         }
         val nextTrack = tracks[currentTrackIndex]
-        currentTrack = nextTrack
+        _currentTrack.value = nextTrack
         player.setMediaItem(MediaItem.fromUri(nextTrack.uri))
         player.prepare()
         player.play()
@@ -116,7 +118,7 @@ class MusicPlayerManager(context: Context) {
             tracks.lastIndex
         }
         val previousTrack = tracks[currentTrackIndex]
-        currentTrack = previousTrack
+        _currentTrack.value = previousTrack
         player.setMediaItem(MediaItem.fromUri(previousTrack.uri))
         player.prepare()
         player.play()
@@ -124,10 +126,6 @@ class MusicPlayerManager(context: Context) {
 
     fun pause() {
         player.pause()
-        android.util.Log.d(
-            "PlayerPulse",
-            "${playerState.value}"
-        )
     }
 
     fun resume() {

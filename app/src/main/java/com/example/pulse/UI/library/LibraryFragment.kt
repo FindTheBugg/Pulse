@@ -22,12 +22,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.lifecycle.Lifecycle
+import androidx.fragment.app.activityViewModels
+import com.example.pulse.UI.player.PlayerViewModel
 
 class LibraryFragment : Fragment(R.layout.fragment_library) {
 
     private var _binding: FragmentLibraryBinding? = null
     private val binding get() = _binding!!
     private lateinit var trackAdapter: TrackAdapter
+    private val playerViewModel: PlayerViewModel by activityViewModels()
     private var musicPlayerManager: MusicPlayerManager? = null
     private val audioPicker =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -71,7 +74,7 @@ class LibraryFragment : Fragment(R.layout.fragment_library) {
         super.onViewCreated(view, savedInstanceState)
 
         _binding = FragmentLibraryBinding.bind(view)
-        musicPlayerManager = MusicPlayerManager(requireContext())
+        musicPlayerManager = playerViewModel.musicPlayerManager
         observePlayerState()
 
         trackAdapter = TrackAdapter { track ->
@@ -203,6 +206,7 @@ class LibraryFragment : Fragment(R.layout.fragment_library) {
                 }
 
                 trackAdapter.setTracks(emptyList())
+                musicPlayerManager?.setPlaylist(emptyList())
                 updateEmptyState()
                 Toast.makeText(
                     context,
@@ -225,9 +229,4 @@ class LibraryFragment : Fragment(R.layout.fragment_library) {
         super.onDestroyView()
     }
 
-    override fun onDestroy() {
-        musicPlayerManager?.release()
-        musicPlayerManager = null
-        super.onDestroy()
-    }
 }

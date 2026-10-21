@@ -40,6 +40,7 @@ android {
 }
 
 dependencies {
+    implementation("androidx.fragment:fragment-ktx:1.8.9")
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
