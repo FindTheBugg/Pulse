@@ -12,18 +12,12 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.pulse.R
-import com.example.pulse.data.MusicPlayerManager
-import com.example.pulse.data.PulseDatabase
-import com.example.pulse.data.TrackMetadataReader
-import com.example.pulse.data.toEntity
-import com.example.pulse.data.toTrack
 import com.example.pulse.databinding.FragmentLibraryBinding
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import androidx.lifecycle.Lifecycle
 import androidx.fragment.app.activityViewModels
 import com.example.pulse.UI.player.PlayerViewModel
+import com.example.pulse.data.TrackRepository
 
 class LibraryFragment : Fragment(R.layout.fragment_library) {
 
@@ -31,7 +25,7 @@ class LibraryFragment : Fragment(R.layout.fragment_library) {
     private val binding get() = _binding!!
     private lateinit var trackAdapter: TrackAdapter
     private val playerViewModel: PlayerViewModel by activityViewModels()
-    private var musicPlayerManager: MusicPlayerManager? = null
+    private val repository by lazy { TrackRepository(requireContext()) }
     private val audioPicker =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
             if (uri == null) {
@@ -74,11 +68,10 @@ class LibraryFragment : Fragment(R.layout.fragment_library) {
         super.onViewCreated(view, savedInstanceState)
 
         _binding = FragmentLibraryBinding.bind(view)
-        musicPlayerManager = playerViewModel.musicPlayerManager
         observePlayerState()
 
         trackAdapter = TrackAdapter { track ->
-            musicPlayerManager?.play(track.uri)
+            playerViewModel.onTrackClick(track)
         }
         binding.tracksRecyclerView.apply {
             layoutManager = LinearLayoutManager(requireContext())
@@ -87,34 +80,22 @@ class LibraryFragment : Fragment(R.layout.fragment_library) {
         binding.addMusicButton.setOnClickListener {
             audioPicker.launch(arrayOf("audio/*"))
         }
-        binding.btnClearLibrary.setOnClickListener {
-            clearLibrary()
-        }
         binding.btnPlayPause.setOnClickListener {
-            val playerManager = musicPlayerManager
-
-            if (playerManager == null || !playerManager.hasTrack) {
+            if (!playerViewModel.hasTrack) {
                 Toast.makeText(
                     requireContext(),
                     "Сначала выбери трек",
                     Toast.LENGTH_SHORT
                 ).show()
-                return@setOnClickListener
-            }
-
-            val state = playerManager.playerState.value
-            when {
-                state.isPlaying -> playerManager.pause()
-                state.isEnded -> playerManager.replay()
-                else -> playerManager.resume()
+            } else {
+                playerViewModel.onPlayPauseClick()
             }
         }
         binding.btnPrevious.setOnClickListener {
-            musicPlayerManager?.playPrevious()
+            playerViewModel.onPreviousClick()
         }
-
         binding.btnNext.setOnClickListener {
-            musicPlayerManager?.playNext()
+            playerViewModel.onNextClick()
         }
         loadTracks()
     }
@@ -122,7 +103,7 @@ class LibraryFragment : Fragment(R.layout.fragment_library) {
     private fun observePlayerState() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED){
-                musicPlayerManager?.playerState?.collect { state ->
+                playerViewModel.playerState.collect { state ->
                     binding.btnPlayPause.text =
                         if (state.isPlaying) "⏸\uFE0F Pause" else "▶\uFE0F Play"
                 }
@@ -132,16 +113,9 @@ class LibraryFragment : Fragment(R.layout.fragment_library) {
 
     private fun loadTracks() {
         viewLifecycleOwner.lifecycleScope.launch {
-            val context = requireContext()
-
-            val tracks = withContext(Dispatchers.IO) {
-                PulseDatabase.getDatabase(context)
-                    .trackDao()
-                    .getAllTracks()
-                    .map { it.toTrack() }
-            }
+            val tracks = repository.getAllTracks()
             trackAdapter.setTracks(tracks)
-            musicPlayerManager?.setPlaylist(tracks)
+            playerViewModel.setPlaylist(tracks)
             updateEmptyState()
         }
     }
@@ -158,13 +132,7 @@ class LibraryFragment : Fragment(R.layout.fragment_library) {
 
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                withContext(Dispatchers.IO) {
-                    val reader = TrackMetadataReader(context)
-                    val track = reader.readTrack(uri)
-                    PulseDatabase.getDatabase(context)
-                        .trackDao()
-                        .insertTrack(track.toEntity())
-                }
+                repository.addTrack(uri)
                 loadTracks()
             } catch (e: Exception) {
                 Toast.makeText(
@@ -176,52 +144,7 @@ class LibraryFragment : Fragment(R.layout.fragment_library) {
         }
     }
 
-    private fun clearLibrary() {
-        musicPlayerManager?.stop()
 
-        val context = requireContext()
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            try {
-                val database = PulseDatabase.getDatabase(context)
-                val contentResolver = context.contentResolver
-                val savedTracks = withContext(Dispatchers.IO) {
-                    database.trackDao().getAllTracks()
-                }
-
-                savedTracks
-                    .map { Uri.parse(it.uri) }
-                    .distinct()
-                    .forEach { uri ->
-                        try {
-                            contentResolver.releasePersistableUriPermission(
-                                uri,
-                                Intent.FLAG_GRANT_READ_URI_PERMISSION
-                            )
-                        } catch (_: SecurityException) { }
-                    }
-
-                withContext(Dispatchers.IO) {
-                    database.trackDao().deleteAllTracks()
-                }
-
-                trackAdapter.setTracks(emptyList())
-                musicPlayerManager?.setPlaylist(emptyList())
-                updateEmptyState()
-                Toast.makeText(
-                    context,
-                    "Библиотека очищена",
-                    Toast.LENGTH_SHORT
-                ).show()
-            } catch (e: Exception) {
-                Toast.makeText(
-                    context,
-                    "Не удалось очистить библиотеку",
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-        }
-    }
 
     override fun onDestroyView() {
         binding.tracksRecyclerView.adapter = null

@@ -2,12 +2,21 @@ package com.example.pulse.data
 
 import android.content.Context
 import android.net.Uri
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import androidx.media3.common.Player
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 
 class MusicPlayerManager(context: Context) {
 
@@ -21,6 +30,9 @@ class MusicPlayerManager(context: Context) {
     val hasTrack: Boolean
         get() = player.currentMediaItem != null
 
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private var progressJob: Job? = null
+
     init {
         player.addListener(object : Player.Listener {
 
@@ -32,11 +44,14 @@ class MusicPlayerManager(context: Context) {
             }
 
             override fun onIsPlayingChanged(isPlaying: Boolean) {
+                if (isPlaying) startProgressUpdates() else stopProgressUpdates()
                 updatePlayState()
             }
+
             override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
                 updatePlayState()
             }
+
             override fun onPlaybackStateChanged(playbackState: Int) {
                 updatePlayState()
 
@@ -47,11 +62,34 @@ class MusicPlayerManager(context: Context) {
         })
     }
 
+    private fun startProgressUpdates() {
+        progressJob?.cancel()
+        progressJob = scope.launch {
+            while (isActive) {
+                updatePlayState()
+                delay(500)
+            }
+        }
+    }
+
+    private fun stopProgressUpdates() {
+        progressJob?.cancel()
+        progressJob = null
+    }
+
     private fun updatePlayState() {
+        val duration = if (player.duration == C.TIME_UNSET) {
+            _currentTrack.value?.duration ?: 0L
+        } else {
+            player.duration
+        }
+
         _playerState.value = PlayerState(
             isPlaying = player.isPlaying,
             playWhenReady = player.playWhenReady,
-            isEnded = player.playbackState == Player.STATE_ENDED
+            isEnded = player.playbackState == Player.STATE_ENDED,
+            positionMs = player.currentPosition.coerceAtLeast(0L),
+            durationMs = duration.coerceAtLeast(0L)
         )
     }
 
@@ -73,6 +111,11 @@ class MusicPlayerManager(context: Context) {
         }
     }
 
+    fun seekTo(positionMs: Long) {
+        player.seekTo(positionMs)
+        updatePlayState()
+    }
+
     fun replay() {
         player.seekTo(0)
         player.play()
@@ -83,6 +126,7 @@ class MusicPlayerManager(context: Context) {
         player.clearMediaItems()
         currentTrackIndex = -1
         _currentTrack.value = null
+        updatePlayState()
     }
 
     fun play(uri: Uri) {
@@ -133,6 +177,8 @@ class MusicPlayerManager(context: Context) {
     }
 
     fun release() {
+        stopProgressUpdates()
+        scope.cancel()
         player.release()
     }
 }

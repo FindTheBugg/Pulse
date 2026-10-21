@@ -1,8 +1,9 @@
-package com.example.pulse.data
+package com.example.pulse.UI
 
 import android.content.Context
 import android.media.MediaMetadataRetriever
 import android.net.Uri
+import com.example.pulse.data.Track
 
 class TrackMetadataReader(
     private val context: Context

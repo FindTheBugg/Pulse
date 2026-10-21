@@ -1,4 +1,4 @@
-package com.example.pulse.data
+package com.example.pulse.UI
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
