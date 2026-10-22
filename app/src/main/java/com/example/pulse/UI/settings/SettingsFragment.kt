@@ -8,7 +8,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.example.pulse.R
-import com.example.pulse.UI.player.PlayerViewModel
+import com.example.pulse.ui.player.PlayerViewModel
 import com.example.pulse.data.TrackRepository
 import com.example.pulse.databinding.FragmentSettingsBinding
 import kotlinx.coroutines.launch
@@ -32,8 +32,8 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
     private fun showClearConfirmation() {
         AlertDialog.Builder(requireContext())
             .setTitle("Очистить библиотеку треков?")
-            .setMessage("Сообщение для Олеси: Все УДАЛИТСЯ НАХУЙ!!! Удаляем?")
-            .setPositiveButton("Похуй") { _, _ -> clearLibrary() }
+            .setMessage("Вы уверены что хотите удалить ВСЕ треки?")
+            .setPositiveButton("Удалить") { _, _ -> clearLibrary() }
             .setNegativeButton("Нинада", null)
             .show()
     }
@@ -44,8 +44,6 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 repository.clearAll()
-                playerViewModel.stop()
-                playerViewModel.setPlaylist(emptyList())
                 Toast.makeText(context, "Библиотека очищена", Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
                 Toast.makeText(context, "Не удалось очистить библиотеку", Toast.LENGTH_LONG).show()

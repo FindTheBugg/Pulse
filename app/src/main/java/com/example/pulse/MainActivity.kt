@@ -5,7 +5,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.example.pulse.databinding.ActivityMainBinding
-import com.example.pulse.UI.library.LibraryFragment
+import com.example.pulse.ui.library.LibraryFragment
 import com.example.pulse.UI.overview.OverviewFragment
 import com.example.pulse.UI.playlists.PlaylistsFragment
 import com.example.pulse.UI.settings.SettingsFragment

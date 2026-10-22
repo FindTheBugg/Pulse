@@ -1,24 +1,21 @@
-package com.example.pulse.UI.library
+package com.example.pulse.ui.library
 
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.pulse.R
 import com.example.pulse.databinding.FragmentLibraryBinding
+import com.example.pulse.ui.player.PlayerViewModel
 import kotlinx.coroutines.launch
-import androidx.lifecycle.Lifecycle
-import androidx.fragment.app.activityViewModels
-import com.example.pulse.UI.player.PlayerViewModel
-import com.example.pulse.data.TrackRepository
-import com.example.pulse.ui.library.TrackAdapter
 
 class LibraryFragment : Fragment(R.layout.fragment_library) {
 
@@ -26,7 +23,8 @@ class LibraryFragment : Fragment(R.layout.fragment_library) {
     private val binding get() = _binding!!
     private lateinit var trackAdapter: TrackAdapter
     private val playerViewModel: PlayerViewModel by activityViewModels()
-    private val repository by lazy { TrackRepository(requireContext()) }
+    private val libraryViewModel: LibraryViewModel by activityViewModels()
+
     private val audioPicker =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
             if (uri == null) {
@@ -48,28 +46,18 @@ class LibraryFragment : Fragment(R.layout.fragment_library) {
                     .persistedUriPermissions
                     .any { it.uri == uri && it.isReadPermission }
                 if (hasPermission) {
-                    onAudioSelected(uri)
+                    libraryViewModel.onAudioSelected(uri)
                 } else {
-                    Toast.makeText(
-                        requireContext(),
-                        "Не удалось сохранить доступ к файлу",
-                        Toast.LENGTH_LONG
-                    ).show()
+                    showPermissionError()
                 }
             } catch (e: Exception) {
-                Toast.makeText(
-                    requireContext(),
-                    "Не удалось сохранить доступ к файлу",
-                    Toast.LENGTH_LONG
-                ).show()
+                showPermissionError()
             }
         }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         _binding = FragmentLibraryBinding.bind(view)
-        observePlayerState()
 
         trackAdapter = TrackAdapter { track ->
             playerViewModel.onTrackClick(track)
@@ -78,6 +66,7 @@ class LibraryFragment : Fragment(R.layout.fragment_library) {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = trackAdapter
         }
+
         binding.addMusicButton.setOnClickListener {
             audioPicker.launch(arrayOf("audio/*"))
         }
@@ -98,66 +87,55 @@ class LibraryFragment : Fragment(R.layout.fragment_library) {
         binding.btnNext.setOnClickListener {
             playerViewModel.onNextClick()
         }
-        loadTracks()
+        observeState()
     }
 
-    private fun observePlayerState() {
+    private fun observeState() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+
+                launch {
+                    libraryViewModel.tracks.collect { tracks ->
+                        if (tracks == null) return@collect
+                        trackAdapter.setTracks(tracks)
+                        binding.emptyStateText.isVisible = tracks.isEmpty()
+                        binding.tracksRecyclerView.isVisible = tracks.isNotEmpty()
+                    }
+                }
+
                 launch {
                     playerViewModel.playerState.collect { state ->
                         binding.btnPlayPause.text =
                             if (state.isPlaying) "⏸\uFE0F Pause" else "▶\uFE0F Play"
                     }
                 }
+
                 launch {
                     playerViewModel.currentTrack.collect { track ->
                         trackAdapter.setCurrentTrackId(track?.id)
+                    }
+                }
+
+                launch {
+                    libraryViewModel.messages.collect { message ->
+                        Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
                     }
                 }
             }
         }
     }
 
-    private fun loadTracks() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            val tracks = repository.getAllTracks()
-            trackAdapter.setTracks(tracks)
-            playerViewModel.setPlaylist(tracks)
-            updateEmptyState()
-        }
+    private fun showPermissionError() {
+        Toast.makeText(
+            requireContext(),
+            "Не удалось сохранить доступ к файлу",
+            Toast.LENGTH_LONG
+        ).show()
     }
-
-    private fun updateEmptyState() {
-        val isEmpty = trackAdapter.itemCount == 0
-
-        binding.emptyStateText.isVisible = isEmpty
-        binding.tracksRecyclerView.isVisible = !isEmpty
-    }
-
-    private fun onAudioSelected(uri: Uri) {
-        val context = requireContext()
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            try {
-                repository.addTrack(uri)
-                loadTracks()
-            } catch (e: Exception) {
-                Toast.makeText(
-                    context,
-                    "Не удалось прочитать или сохранить аудиофайл",
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-        }
-    }
-
-
 
     override fun onDestroyView() {
         binding.tracksRecyclerView.adapter = null
         _binding = null
         super.onDestroyView()
     }
-
 }

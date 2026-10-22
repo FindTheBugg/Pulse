@@ -1,15 +1,19 @@
-package com.example.pulse.UI.player
+package com.example.pulse.ui.player
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.pulse.data.MusicPlayerManager
 import com.example.pulse.data.PlayerState
 import com.example.pulse.data.Track
+import com.example.pulse.data.TrackRepository
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
 class PlayerViewModel(application: Application) : AndroidViewModel(application) {
 
     private val musicPlayerManager = MusicPlayerManager(application)
+    private val repository = TrackRepository(application)
 
     val playerState: StateFlow<PlayerState> = musicPlayerManager.playerState
     val currentTrack: StateFlow<Track?> = musicPlayerManager.currentTrack
@@ -17,11 +21,12 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
     val hasTrack: Boolean
         get() = musicPlayerManager.hasTrack
 
-    fun onSeekTo(positionMs: Long) {
-        musicPlayerManager.seekTo(positionMs)
-    }
-    fun setPlaylist(tracks: List<Track>) {
-        musicPlayerManager.setPlaylist(tracks)
+    init {
+        viewModelScope.launch {
+            repository.tracks.collect { tracks ->
+                musicPlayerManager.setPlaylist(tracks)
+            }
+        }
     }
 
     fun onTrackClick(track: Track) {
@@ -44,6 +49,10 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
 
     fun onPreviousClick() {
         musicPlayerManager.playPrevious()
+    }
+
+    fun onSeekTo(positionMs: Long) {
+        musicPlayerManager.seekTo(positionMs)
     }
 
     fun stop() {

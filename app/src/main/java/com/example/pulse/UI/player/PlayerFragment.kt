@@ -12,7 +12,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.example.pulse.R
 import com.example.pulse.databinding.FragmentPlayerBinding
 import kotlinx.coroutines.launch
-
+import com.example.pulse.ui.player.PlayerViewModel
 class PlayerFragment : Fragment(R.layout.fragment_player) {
 
     private var _binding: FragmentPlayerBinding? = null

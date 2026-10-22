@@ -1,7 +1,7 @@
 package com.example.pulse.data
 
 import android.net.Uri
-import com.example.pulse.UI.TrackEntity
+import com.example.pulse.data.TrackEntity
 
 fun Track.toEntity(): TrackEntity {
     return TrackEntity(
