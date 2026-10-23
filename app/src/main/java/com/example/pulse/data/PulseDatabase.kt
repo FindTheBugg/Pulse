@@ -19,7 +19,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 abstract class PulseDatabase : RoomDatabase() {
 
     abstract fun trackDao(): TrackDao
-
+    abstract fun playlistDao(): PlaylistDao
     companion object {
         @Volatile
         private var INSTANCE: PulseDatabase? = null
