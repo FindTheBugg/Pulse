@@ -2,46 +2,46 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginVertical="4dp"
-    android:background="@drawable/bg_track_normal"
-    android:gravity="center_vertical"
-    android:orientation="horizontal"
-    android:paddingStart="16dp">
+    android:orientation="vertical"
+    android:background="@android:color/transparent">
 
     <LinearLayout
-        android:layout_width="0dp"
+        android:id="@+id/playlistContent"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
+        android:minHeight="84dp"
+        android:gravity="center_vertical"
         android:orientation="vertical"
-        android:paddingVertical="16dp">
+        android:paddingTop="14dp"
+        android:paddingBottom="14dp"
+        android:background="?attr/selectableItemBackground">
 
         <TextView
             android:id="@+id/tvPlaylistName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:maxLines="1"
+            android:text="Спорт"
             android:textColor="@color/text_primary"
-            android:textSize="16sp"
-            android:textStyle="bold" />
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:ellipsize="end" />
 
         <TextView
             android:id="@+id/tvPlaylistCount"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
+            android:text="12 треков"
             android:textColor="@color/text_secondary"
             android:textSize="14sp" />
+
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/btnMore"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:gravity="center"
-        android:paddingHorizontal="20dp"
-        android:text="⋮"
-        android:textColor="@color/text_primary"
-        android:textSize="24sp" />
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/text_secondary"
+        android:alpha="0.25" />
 
 </LinearLayout>

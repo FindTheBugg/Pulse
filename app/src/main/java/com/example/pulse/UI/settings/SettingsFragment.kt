@@ -1,4 +1,4 @@
-package com.example.pulse.UI.settings
+package com.example.pulse.ui.settings
 
 import android.os.Bundle
 import android.view.View

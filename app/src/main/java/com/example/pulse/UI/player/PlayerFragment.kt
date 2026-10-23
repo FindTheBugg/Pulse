@@ -1,4 +1,4 @@
-package com.example.pulse.UI.player
+package com.example.pulse.ui.player
 
 import android.os.Bundle
 import android.view.View

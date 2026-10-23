@@ -70,23 +70,7 @@ class LibraryFragment : Fragment(R.layout.fragment_library) {
         binding.addMusicButton.setOnClickListener {
             audioPicker.launch(arrayOf("audio/*"))
         }
-        binding.btnPlayPause.setOnClickListener {
-            if (!playerViewModel.hasTrack) {
-                Toast.makeText(
-                    requireContext(),
-                    "Сначала выбери трек",
-                    Toast.LENGTH_SHORT
-                ).show()
-            } else {
-                playerViewModel.onPlayPauseClick()
-            }
-        }
-        binding.btnPrevious.setOnClickListener {
-            playerViewModel.onPreviousClick()
-        }
-        binding.btnNext.setOnClickListener {
-            playerViewModel.onNextClick()
-        }
+
         observeState()
     }
 
@@ -100,13 +84,6 @@ class LibraryFragment : Fragment(R.layout.fragment_library) {
                         trackAdapter.setTracks(tracks)
                         binding.emptyStateText.isVisible = tracks.isEmpty()
                         binding.tracksRecyclerView.isVisible = tracks.isNotEmpty()
-                    }
-                }
-
-                launch {
-                    playerViewModel.playerState.collect { state ->
-                        binding.btnPlayPause.text =
-                            if (state.isPlaying) "⏸\uFE0F Pause" else "▶\uFE0F Play"
                     }
                 }
 

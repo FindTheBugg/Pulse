@@ -37,10 +37,15 @@ class PlaylistAdapter(
 
         holder.itemView.setOnClickListener { onClick(playlist) }
 
-        holder.binding.btnMore.setOnClickListener { anchor ->
-            val popup = PopupMenu(anchor.context, anchor)
+        holder.itemView.setOnLongClickListener {
+            val popup = PopupMenu(
+                holder.itemView.context,
+                holder.itemView
+            )
+
             popup.menu.add(0, MENU_RENAME, 0, "Переименовать")
             popup.menu.add(0, MENU_DELETE, 1, "Удалить")
+
             popup.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
                     MENU_RENAME -> onRename(playlist)
@@ -48,7 +53,9 @@ class PlaylistAdapter(
                 }
                 true
             }
+
             popup.show()
+            true
         }
     }
 
