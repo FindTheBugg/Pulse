@@ -36,6 +36,10 @@ class PlaylistAdapter(
             "${playlist.trackCount} ${tracksWord(playlist.trackCount)}"
 
         holder.itemView.setOnClickListener { onClick(playlist) }
+        holder.itemView.setOnLongClickListener {
+            onRename(playlist)
+            true
+        }
 
         holder.itemView.setOnLongClickListener {
             val popup = PopupMenu(
