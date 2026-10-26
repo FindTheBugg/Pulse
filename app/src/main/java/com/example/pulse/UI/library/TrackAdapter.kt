@@ -1,6 +1,7 @@
 package com.example.pulse.ui.library
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.pulse.R
@@ -58,14 +59,14 @@ class TrackAdapter(
         holder.binding.tvTrackArtist.text = track.artist
         holder.binding.tvTrackDuration.text = formatDuration(track.duration)
 
-        holder.itemView.setBackgroundResource(
-            if (track.id == currentTrackId) R.drawable.bg_track_playing
-            else R.drawable.bg_track_normal
+        holder.binding.trackFrame.setEffectEnabled(
+            track.id == currentTrackId
         )
 
         holder.itemView.setOnClickListener {
             onTrackClick(track)
         }
+
         holder.itemView.setOnLongClickListener {
             onTrackLongClick?.invoke(track)
             onTrackLongClick != null

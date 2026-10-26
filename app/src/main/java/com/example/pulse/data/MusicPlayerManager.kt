@@ -89,20 +89,17 @@ class MusicPlayerManager(context: Context) {
         )
     }
 
-    // Запустить трек и сделать newQueue текущей очередью
     fun playTrack(track: Track, newQueue: List<Track>) {
         queue = newQueue
         currentTrackIndex = newQueue.indexOfFirst { it.id == track.id }
         startTrack(track)
     }
 
-    // Заменить очередь, не прерывая музыку
     fun setQueue(newQueue: List<Track>) {
         queue = newQueue
         currentTrackIndex = newQueue.indexOfFirst { it.id == _currentTrack.value?.id }
     }
 
-    // Библиотека изменилась: убрать из очереди удалённые треки
     fun onLibraryChanged(library: List<Track>) {
         val ids = library.map { it.id }.toSet()
         val current = _currentTrack.value

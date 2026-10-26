@@ -50,7 +50,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (savedInstanceState == null) {
-            binding.bottomNavigation.selectedItemId = R.id.nav_library
+            openFragment(LibraryFragment())
         }
     }
     private fun setupWindowInsets() {
