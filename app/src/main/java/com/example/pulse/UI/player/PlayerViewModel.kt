@@ -14,9 +14,10 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
 
     private val musicPlayerManager = MusicPlayerManager(application)
     private val repository = TrackRepository(application)
-
     val playerState: StateFlow<PlayerState> = musicPlayerManager.playerState
     val currentTrack: StateFlow<Track?> = musicPlayerManager.currentTrack
+    private var libraryTracks: List<Track> = emptyList()
+    private var queueIsLibrary = true
 
     val hasTrack: Boolean
         get() = musicPlayerManager.hasTrack
@@ -24,13 +25,28 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
     init {
         viewModelScope.launch {
             repository.tracks.collect { tracks ->
-                musicPlayerManager.setPlaylist(tracks)
+                libraryTracks = tracks
+                musicPlayerManager.onLibraryChanged(tracks)
+                if (queueIsLibrary) {
+                    musicPlayerManager.setQueue(tracks)
+                }
             }
         }
     }
 
     fun onTrackClick(track: Track) {
-        musicPlayerManager.play(track.uri)
+        queueIsLibrary = true
+        musicPlayerManager.playTrack(track, libraryTracks)
+    }
+
+    fun onPlaylistTrackClick(track: Track, playlistTracks: List<Track>) {
+        queueIsLibrary = false
+        musicPlayerManager.playTrack(track, playlistTracks)
+    }
+
+    fun onPlayPlaylist(playlistTracks: List<Track>) {
+        val first = playlistTracks.firstOrNull() ?: return
+        onPlaylistTrackClick(first, playlistTracks)
     }
 
     fun onPlayPauseClick() {

@@ -59,4 +59,12 @@ class PlaylistRepository(context: Context) {
     suspend fun removeTrack(playlistId: Long, trackId: String) = withContext(Dispatchers.IO) {
         playlistDao.removeTrackFromPlaylist(playlistId, trackId)
     }
+
+    suspend fun createPlaylistReturningId(name: String): Long? = withContext(Dispatchers.IO) {
+        val cleanName = name.trim()
+        if (cleanName.isEmpty()) return@withContext null
+        playlistDao.insertPlaylist(
+            PlaylistEntity(name = cleanName, createdAt = System.currentTimeMillis())
+        )
+    }
 }

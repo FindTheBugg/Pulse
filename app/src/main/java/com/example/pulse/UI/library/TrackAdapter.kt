@@ -8,6 +8,7 @@ import com.example.pulse.data.Track
 import com.example.pulse.databinding.ItemTrackBinding
 
 class TrackAdapter(
+    private val onTrackLongClick: ((Track) -> Unit)? = null,
     private val onTrackClick: (Track) -> Unit
 ) : RecyclerView.Adapter<TrackAdapter.TrackViewHolder>() {
 
@@ -64,6 +65,10 @@ class TrackAdapter(
 
         holder.itemView.setOnClickListener {
             onTrackClick(track)
+        }
+        holder.itemView.setOnLongClickListener {
+            onTrackLongClick?.invoke(track)
+            onTrackLongClick != null
         }
     }
 

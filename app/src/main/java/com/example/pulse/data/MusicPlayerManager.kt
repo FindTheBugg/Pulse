@@ -1,7 +1,6 @@
 package com.example.pulse.data
 
 import android.content.Context
-import android.net.Uri
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -23,9 +22,10 @@ class MusicPlayerManager(context: Context) {
     private val player = ExoPlayer.Builder(context.applicationContext).build()
     private val _playerState = MutableStateFlow(PlayerState())
     val playerState: StateFlow<PlayerState> = _playerState.asStateFlow()
-    private var tracks: List<Track> = emptyList()
+
     private val _currentTrack = MutableStateFlow<Track?>(null)
     val currentTrack: StateFlow<Track?> = _currentTrack.asStateFlow()
+    private var queue: List<Track> = emptyList()
     private var currentTrackIndex: Int = -1
     val hasTrack: Boolean
         get() = player.currentMediaItem != null
@@ -36,10 +36,7 @@ class MusicPlayerManager(context: Context) {
     init {
         player.addListener(object : Player.Listener {
 
-            override fun onMediaItemTransition(
-                mediaItem: MediaItem?,
-                reason: Int
-            ) {
+            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 updatePlayState()
             }
 
@@ -54,7 +51,6 @@ class MusicPlayerManager(context: Context) {
 
             override fun onPlaybackStateChanged(playbackState: Int) {
                 updatePlayState()
-
                 if (playbackState == Player.STATE_ENDED) {
                     playNext()
                 }
@@ -93,22 +89,57 @@ class MusicPlayerManager(context: Context) {
         )
     }
 
-    fun setPlaylist(newTracks: List<Track>) {
-        val currentUri = player.currentMediaItem
-            ?.localConfiguration
-            ?.uri
-        val currentTrackStillExists = newTracks.any {
-            it.uri == currentUri
-        }
-        tracks = newTracks
-        if (currentUri != null && !currentTrackStillExists) {
+    // Запустить трек и сделать newQueue текущей очередью
+    fun playTrack(track: Track, newQueue: List<Track>) {
+        queue = newQueue
+        currentTrackIndex = newQueue.indexOfFirst { it.id == track.id }
+        startTrack(track)
+    }
+
+    // Заменить очередь, не прерывая музыку
+    fun setQueue(newQueue: List<Track>) {
+        queue = newQueue
+        currentTrackIndex = newQueue.indexOfFirst { it.id == _currentTrack.value?.id }
+    }
+
+    // Библиотека изменилась: убрать из очереди удалённые треки
+    fun onLibraryChanged(library: List<Track>) {
+        val ids = library.map { it.id }.toSet()
+        val current = _currentTrack.value
+
+        if (current != null && current.id !in ids) {
             stop()
-            currentTrackIndex = -1
             return
         }
-        currentTrackIndex = tracks.indexOfFirst {
-            it.uri == currentUri
+        queue = queue.filter { it.id in ids }
+        currentTrackIndex = queue.indexOfFirst { it.id == current?.id }
+    }
+
+    private fun startTrack(track: Track) {
+        _currentTrack.value = track
+        player.setMediaItem(MediaItem.fromUri(track.uri))
+        player.prepare()
+        player.play()
+    }
+
+    fun playNext() {
+        if (queue.isEmpty()) return
+        currentTrackIndex = if (currentTrackIndex in queue.indices) {
+            (currentTrackIndex + 1) % queue.size
+        } else {
+            0
         }
+        startTrack(queue[currentTrackIndex])
+    }
+
+    fun playPrevious() {
+        if (queue.isEmpty()) return
+        currentTrackIndex = if (currentTrackIndex in queue.indices) {
+            (currentTrackIndex - 1 + queue.size) % queue.size
+        } else {
+            queue.lastIndex
+        }
+        startTrack(queue[currentTrackIndex])
     }
 
     fun seekTo(positionMs: Long) {
@@ -121,59 +152,21 @@ class MusicPlayerManager(context: Context) {
         player.play()
     }
 
-    fun stop() {
-        player.stop()
-        player.clearMediaItems()
-        currentTrackIndex = -1
-        _currentTrack.value = null
-        updatePlayState()
-    }
-
-    fun play(uri: Uri) {
-        currentTrackIndex = tracks.indexOfFirst {
-            it.uri == uri
-        }
-        _currentTrack.value = tracks.getOrNull(currentTrackIndex)
-        val mediaItem = MediaItem.fromUri(uri)
-        player.setMediaItem(mediaItem)
-        player.prepare()
-        player.play()
-    }
-
-    fun playNext() {
-        if (tracks.isEmpty()) return
-        currentTrackIndex = if (currentTrackIndex in tracks.indices) {
-            (currentTrackIndex + 1) % tracks.size
-        } else {
-            0
-        }
-        val nextTrack = tracks[currentTrackIndex]
-        _currentTrack.value = nextTrack
-        player.setMediaItem(MediaItem.fromUri(nextTrack.uri))
-        player.prepare()
-        player.play()
-    }
-
-    fun playPrevious() {
-        if (tracks.isEmpty()) return
-        currentTrackIndex = if (currentTrackIndex in tracks.indices) {
-            (currentTrackIndex - 1 + tracks.size) % tracks.size
-        } else {
-            tracks.lastIndex
-        }
-        val previousTrack = tracks[currentTrackIndex]
-        _currentTrack.value = previousTrack
-        player.setMediaItem(MediaItem.fromUri(previousTrack.uri))
-        player.prepare()
-        player.play()
-    }
-
     fun pause() {
         player.pause()
     }
 
     fun resume() {
         player.play()
+    }
+
+    fun stop() {
+        player.stop()
+        player.clearMediaItems()
+        queue = emptyList()
+        currentTrackIndex = -1
+        _currentTrack.value = null
+        updatePlayState()
     }
 
     fun release() {

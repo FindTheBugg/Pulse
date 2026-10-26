@@ -34,8 +34,10 @@ class PlaylistsFragment : Fragment(R.layout.fragment_playlists) {
 
         playlistAdapter = PlaylistAdapter(
             onClick = { playlist ->
-                // Открытие плейлиста сделаем в шаге 6.2
-                Toast.makeText(requireContext(), playlist.name, Toast.LENGTH_SHORT).show()
+                parentFragmentManager.beginTransaction()
+                    .replace(R.id.fragmentContainer, PlaylistDetailFragment.newInstance(playlist.id))
+                    .addToBackStack(null)
+                    .commit()
             },
             onRename = { playlist -> showRenameDialog(playlist) },
             onDelete = { playlist -> showDeleteDialog(playlist) }
@@ -69,7 +71,6 @@ class PlaylistsFragment : Fragment(R.layout.fragment_playlists) {
                 if (position == RecyclerView.NO_POSITION) return
                 val playlist = playlistAdapter.currentList[position]
                 showDeleteDialog(playlist) {
-                    // отмена: возвращаем строку на место
                     playlistAdapter.notifyItemChanged(position)
                 }
             }
