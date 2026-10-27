@@ -19,7 +19,7 @@ class AddTracksViewModel(
     savedStateHandle: SavedStateHandle
 ) : AndroidViewModel(application) {
 
-    private val playlistId: Long =
+    val playlistId: Long =
         savedStateHandle[ARG_PLAYLIST_ID] ?: error("playlistId не передан")
 
     private val trackRepository = TrackRepository(application)

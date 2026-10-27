@@ -31,7 +31,14 @@
             android:maxLines="1"
             android:textColor="@color/text_primary"
             android:textSize="24sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/addMusicButton"
+            style="@style/Widget.Pulse.RoundButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:text="＋"/>
     </LinearLayout>
 
     <FrameLayout
@@ -57,7 +64,8 @@
             android:visibility="gone" />
     </FrameLayout>
 
-    <Button
+    <androidx.appcompat.widget.AppCompatButton
+        style="@style/Widget.Pulse.Button"
         android:id="@+id/btnConfirm"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

@@ -100,7 +100,7 @@ class PlaylistsFragment : Fragment(R.layout.fragment_playlists) {
         }
     }
 
-    private fun showNameDialog(
+     fun showNameDialog(
         title: String,
         initialName: String,
         onConfirm: (String) -> Unit

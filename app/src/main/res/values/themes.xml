@@ -1,20 +1,42 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
     <style name="Base.Theme.Pulse" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="android:statusBarColor">@color/app_background</item>
+        <item name="android:navigationBarColor">@color/navigation_background</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowBackground">@color/app_background</item>
     </style>
 
     <style name="Theme.Pulse" parent="Base.Theme.Pulse" />
 
     <style name="Widget.Pulse.BottomNavigation" parent="Widget.Material3.BottomNavigationView">
         <item name="itemActiveIndicatorStyle">@style/Widget.Pulse.NavIndicator</item>
-        <item name="itemRippleColor">@color/nav_ripple</item>
+        <item name="itemBackground">@drawable/nav_item_bg</item>
+        <item name="itemIconTint">@color/nav_item_color</item>
+        <item name="itemTextColor">@color/nav_item_color</item>
+        <item name="itemTextAppearanceActive">@style/TextAppearance.Pulse.NavLabel</item>
+        <item name="itemTextAppearanceInactive">@style/TextAppearance.Pulse.NavLabel</item>
     </style>
 
     <style name="Widget.Pulse.NavIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
-        <item name="android:background">@drawable/nav_indicator</item>
-        <item name="android:width">64dp</item>
-        <item name="android:height">32dp</item>
+        <item name="android:color">@android:color/transparent</item>
+    </style>
+
+    <style name="TextAppearance.Pulse.NavLabel" parent="TextAppearance.Material3.LabelMedium">
+        <item name="android:textSize">11sp</item>
+    </style>
+
+    <style name="Widget.Pulse.Button" parent="Widget.AppCompat.Button">
+        <item name="android:background">@drawable/btn_shape</item>
+        <item name="android:textColor">@color/base_white</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+    <style name="Widget.Pulse.RoundButton" parent="Widget.AppCompat.Button">
+        <item name="android:background">@drawable/btn_round</item>
+        <item name="android:gravity">center</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:textColor">@color/base_white</item>
+        <item name="android:textSize">24sp</item>
     </style>
 </resources>

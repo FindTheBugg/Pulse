@@ -30,33 +30,27 @@ class LibraryFragment : Fragment(R.layout.fragment_library) {
     private val libraryViewModel: LibraryViewModel by activityViewModels()
 
     private val audioPicker =
-        registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-            if (uri == null) {
-                Toast.makeText(
-                    requireContext(),
-                    "Файл не выбран",
-                    Toast.LENGTH_SHORT
-                ).show()
+        registerForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
+            if (uris.isEmpty()) {
+                Toast.makeText(requireContext(), "Файлы не выбраны", Toast.LENGTH_SHORT).show()
                 return@registerForActivityResult
             }
 
-            try {
-                requireContext().contentResolver.takePersistableUriPermission(
-                    uri,
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION
-                )
-                val hasPermission = requireContext()
-                    .contentResolver
-                    .persistedUriPermissions
-                    .any { it.uri == uri && it.isReadPermission }
-                if (hasPermission) {
-                    libraryViewModel.onAudioSelected(uri)
-                } else {
-                    showPermissionError()
+            val resolver = requireContext().contentResolver
+            val granted = uris.filter { uri ->
+                try {
+                    resolver.takePersistableUriPermission(
+                        uri,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    )
+                    true
+                } catch (e: Exception) {
+                    false
                 }
-            } catch (e: Exception) {
-                showPermissionError()
             }
+
+            if (granted.size < uris.size) showPermissionError()
+            if (granted.isNotEmpty()) libraryViewModel.onAudiosSelected(granted)
         }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

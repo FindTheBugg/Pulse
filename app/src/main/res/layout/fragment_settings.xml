@@ -22,7 +22,8 @@
         android:textColor="@color/text_secondary"
         android:textSize="16sp" />
 
-    <Button
+    <androidx.appcompat.widget.AppCompatButton
+        style="@style/Widget.Pulse.Button"
         android:id="@+id/btnClearLibrary"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

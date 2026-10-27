@@ -78,7 +78,8 @@
             android:layout_height="wrap_content"
             android:background="@drawable/btn_shape"
             android:text="⏮"
-            android:textColor="@color/base_white" />
+            android:textColor="@color/base_white"
+            style="@style/Widget.Pulse.Button"/>
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btnPlayPause"
@@ -87,7 +88,8 @@
             android:layout_marginHorizontal="12dp"
             android:background="@drawable/btn_shape"
             android:text="▶"
-            android:textColor="@color/base_white" />
+            android:textColor="@color/base_white"
+            style="@style/Widget.Pulse.Button"/>
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btnNext"
@@ -95,7 +97,8 @@
             android:layout_height="wrap_content"
             android:background="@drawable/btn_shape"
             android:text="⏭"
-            android:textColor="@color/base_white" />
+            android:textColor="@color/base_white"
+            style="@style/Widget.Pulse.Button"/>
 
     </LinearLayout>
 

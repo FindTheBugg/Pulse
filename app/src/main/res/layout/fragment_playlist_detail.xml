@@ -34,12 +34,11 @@
             android:textStyle="bold" />
         <TextView
             android:id="@+id/btnAddTracks"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:paddingStart="16dp"
-            android:text="＋"
-            android:textColor="@color/text_primary"
-            android:textSize="28sp" />
+            style="@style/Widget.Pulse.RoundButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="16dp"
+            android:text="＋" />
     </LinearLayout>
 
     <TextView
@@ -50,7 +49,8 @@
         android:textColor="@color/text_secondary"
         android:textSize="14sp" />
 
-    <Button
+    <androidx.appcompat.widget.AppCompatButton
+        style="@style/Widget.Pulse.Button"
         android:id="@+id/btnPlayPlaylist"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

@@ -6,13 +6,29 @@
     android:padding="24dp"
     android:background="@color/app_background">
 
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Моя коллекция"
-        android:textColor="@color/text_primary"
-        android:textSize="28sp"
-        android:textStyle="bold" />
+        android:layout_marginTop="20dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Моя коллекция"
+            android:textColor="@color/text_primary"
+            android:textSize="28sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/addMusicButton"
+            style="@style/Widget.Pulse.RoundButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:text="＋" />
+    </LinearLayout>
 
     <FrameLayout
         android:layout_width="match_parent"
@@ -36,13 +52,5 @@
             android:text="Здесь пока нет музыки.\nДобавь первый трек!"
             android:textColor="@color/text_secondary"
             android:textSize="16sp" />
-
     </FrameLayout>
-
-    <Button
-        android:id="@+id/addMusicButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="🔊Add music" />
-
 </LinearLayout>

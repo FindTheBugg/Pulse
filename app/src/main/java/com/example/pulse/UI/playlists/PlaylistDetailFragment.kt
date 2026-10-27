@@ -1,7 +1,11 @@
 package com.example.pulse.ui.playlists
 
 import android.os.Bundle
+import android.text.InputType
 import android.view.View
+import android.widget.EditText
+import android.widget.FrameLayout
+import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.os.bundleOf
@@ -12,6 +16,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.viewModelScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.pulse.R
 import com.example.pulse.data.Track
@@ -48,6 +53,13 @@ class PlaylistDetailFragment : Fragment(R.layout.fragment_playlist_detail) {
 
         binding.btnBack.setOnClickListener {
             parentFragmentManager.popBackStack()
+        }
+
+        binding.btnAddTracks.setOnClickListener {
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.fragmentContainer, AddTracksFragment.newInstance(viewModel.playlistId))
+                .addToBackStack(null)
+                .commit()
         }
 
         binding.btnPlayPlaylist.setOnClickListener {
