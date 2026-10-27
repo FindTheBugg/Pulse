@@ -36,7 +36,6 @@ class NeonSmokeFrameLayout @JvmOverloads constructor(
         setWillNotDraw(false)
     }
 
-    // Включить или выключить эффект (вызывается из адаптера)
     fun setEffectEnabled(enabled: Boolean) {
         if (effectEnabled == enabled) return
         effectEnabled = enabled
@@ -57,7 +56,6 @@ class NeonSmokeFrameLayout @JvmOverloads constructor(
         }
     }
 
-    // Размер изменился: старая картинка не подходит, нарисуем новую при следующей отрисовке
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
         effectBitmap?.recycle()
@@ -79,7 +77,6 @@ class NeonSmokeFrameLayout @JvmOverloads constructor(
         canvas.drawBitmap(bitmap, 0f, 0f, bitmapPaint)
     }
 
-    // Рисуем эффект один раз в картинку размером с эту ячейку
     private fun buildEffectBitmap(): Bitmap? {
         if (width <= 0 || height <= 0) return null
 
@@ -95,26 +92,24 @@ class NeonSmokeFrameLayout @JvmOverloads constructor(
             addRoundRect(rect, radius, radius, Path.Direction.CW)
         }
 
-        drawSmoke(canvas, outline)   // сначала дым (он под линией)
-        drawCore(canvas, outline)    // потом свечение и яркая линия сверху
+        drawSmoke(canvas, outline)
+        drawCore(canvas, outline)
         return bitmap
     }
 
-    // Светящаяся линия: несколько слоёв от широкого мягкого к тонкому острому
     private fun drawCore(canvas: Canvas, outline: Path) {
-        canvas.drawPath(outline, strokePaint(dp(6f), dp(10f), 70))   // широкий ореол
-        canvas.drawPath(outline, strokePaint(dp(3.5f), dp(4f), 150)) // среднее свечение
-        canvas.drawPath(outline, strokePaint(dp(2f), dp(1.5f), 255)) // внутреннее свечение
-        canvas.drawPath(outline, strokePaint(dp(1.1f), 0f, 255))     // острое белое ядро
+        canvas.drawPath(outline, strokePaint(dp(6f), dp(10f), 70))
+        canvas.drawPath(outline, strokePaint(dp(3.5f), dp(4f), 150))
+        canvas.drawPath(outline, strokePaint(dp(2f), dp(1.5f), 255))
+        canvas.drawPath(outline, strokePaint(dp(1.1f), 0f, 255))
     }
 
-    // Дым: сотни тонких волнистых нитей вдоль линии
     private fun drawSmoke(canvas: Canvas, outline: Path) {
         val measure = PathMeasure(outline, true)
         val perimeter = measure.length
         if (perimeter <= 0f) return
 
-        val random = Random(2417) // фиксированное число: дым всегда одинаковый
+        val random = Random(2417)
         val count = (perimeter / dp(4f)).toInt().coerceAtLeast(20)
         val strands = List(count) { createStrand(measure, perimeter, random) }
 
@@ -122,17 +117,14 @@ class NeonSmokeFrameLayout @JvmOverloads constructor(
         val midPaint = strokePaint(dp(1.8f), dp(3f), 30)
         val detailPaint = strokePaint(dp(0.6f), 0f, 70)
 
-        // Слой 1: облачка (широкие, размытые, едва заметные)
         strands.forEachIndexed { i, path ->
-            cloudPaint.alpha = 8 + (i * 37) % 14   // у каждой нити своя яркость
+            cloudPaint.alpha = 8 + (i * 37) % 14
             canvas.drawPath(path, cloudPaint)
         }
-        // Слой 2: средние волокна
         strands.forEachIndexed { i, path ->
             midPaint.alpha = 16 + (i * 53) % 28
             canvas.drawPath(path, midPaint)
         }
-        // Слой 3: тонкие чёткие прожилки (не у всех нитей)
         strands.forEachIndexed { i, path ->
             if (i % 2 == 0) {
                 detailPaint.alpha = 35 + (i * 29) % 50
@@ -141,11 +133,9 @@ class NeonSmokeFrameLayout @JvmOverloads constructor(
         }
     }
 
-    // Одна нить дыма: идёт вдоль линии и качается в стороны по волне
     private fun createStrand(measure: PathMeasure, perimeter: Float, random: Random): Path {
         val length = randomIn(random, dp(30f), dp(110f))
         val start = random.nextFloat() * perimeter
-        // Сумма двух случайных чисел: большинство нитей близко к линии, а далёких мало
         val baseOffset = (random.nextFloat() + random.nextFloat() - 1f) * dp(6f)
         val amplitude = randomIn(random, dp(2f), dp(5f))
         val k = (2 * PI).toFloat() / randomIn(random, dp(14f), dp(40f))
@@ -160,15 +150,12 @@ class NeonSmokeFrameLayout @JvmOverloads constructor(
         for (i in 0..steps) {
             val t = i / steps.toFloat()
             val travelled = start + t * length
-            // Точка на линии и направление движения в ней
             measure.getPosTan(travelled % perimeter, pos, tan)
 
-            // Концы нити сходят на нет, середина колышется сильнее
             val envelope = sin(PI * t).toFloat()
             val wave = sin(k * travelled + phase1) + 0.5f * sin(2.3f * k * travelled + phase2)
             val offset = baseOffset + envelope * amplitude * wave
 
-            // Сдвиг перпендикулярно линии (нормаль = направление, повёрнутое на 90°)
             val x = pos[0] - tan[1] * offset
             val y = pos[1] + tan[0] * offset
             if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)

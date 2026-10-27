@@ -4,7 +4,6 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
-import com.example.pulse.R
 import com.example.pulse.data.Track
 import com.example.pulse.databinding.ItemTrackBinding
 
@@ -60,7 +59,6 @@ class TrackAdapter(
         holder.binding.tvTrackDuration.text = formatDuration(track.duration)
 
         holder.binding.trackFrame.setEffectEnabled(track.id == currentTrackId)
-
         holder.itemView.setOnClickListener {
             onTrackClick(track)
         }
