@@ -14,7 +14,8 @@
         android:layout_height="240dp"
         android:src="@android:drawable/ic_media_play"
         android:contentDescription="Обложка трека"
-        android:scaleType="centerInside" />
+        android:scaleType="centerInside"
+        android:background="@drawable/bg_track_playing"/>
 
     <TextView
         android:id="@+id/tvTrackTitle"
@@ -71,24 +72,30 @@
         android:gravity="center"
         android:orientation="horizontal">
 
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btnPrevious"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="⏮" />
+            android:background="@drawable/btn_shape"
+            android:text="⏮"
+            android:textColor="@color/base_white" />
 
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btnPlayPause"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="12dp"
-            android:text="▶ Play" />
+            android:background="@drawable/btn_shape"
+            android:text="▶"
+            android:textColor="@color/base_white" />
 
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btnNext"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="⏭" />
+            android:background="@drawable/btn_shape"
+            android:text="⏭"
+            android:textColor="@color/base_white" />
 
     </LinearLayout>
 

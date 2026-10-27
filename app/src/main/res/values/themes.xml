@@ -6,4 +6,15 @@
     </style>
 
     <style name="Theme.Pulse" parent="Base.Theme.Pulse" />
+
+    <style name="Widget.Pulse.BottomNavigation" parent="Widget.Material3.BottomNavigationView">
+        <item name="itemActiveIndicatorStyle">@style/Widget.Pulse.NavIndicator</item>
+        <item name="itemRippleColor">@color/nav_ripple</item>
+    </style>
+
+    <style name="Widget.Pulse.NavIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:background">@drawable/nav_indicator</item>
+        <item name="android:width">64dp</item>
+        <item name="android:height">32dp</item>
+    </style>
 </resources>

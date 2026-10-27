@@ -95,7 +95,7 @@ class PlayerFragment : Fragment(R.layout.fragment_player) {
                 launch {
                     playerViewModel.playerState.collect { state ->
                         binding.btnPlayPause.text =
-                            if (state.isPlaying) "⏸\uFE0F Pause" else "▶\uFE0F Play"
+                            if (state.isPlaying) "⏸" else "▶"
 
                         binding.seekBarProgress.isEnabled = state.durationMs > 0
                         binding.seekBarProgress.max = state.durationMs.toInt()

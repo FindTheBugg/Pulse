@@ -18,7 +18,7 @@ class PlaylistDetailViewModel(
     savedStateHandle: SavedStateHandle
 ) : AndroidViewModel(application) {
 
-    private val playlistId: Long =
+    val playlistId: Long =
         savedStateHandle[ARG_PLAYLIST_ID] ?: error("playlistId не передан")
 
     private val repository = PlaylistRepository(application)

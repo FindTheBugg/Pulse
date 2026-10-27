@@ -16,6 +16,15 @@ data class PlaylistWithCount(
 @Dao
 interface PlaylistDao {
 
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun addLinks(links: List<PlaylistTrackEntity>): List<Long>
+
+    @Query("SELECT playlistId FROM playlist_tracks WHERE trackId = :trackId")
+    suspend fun getPlaylistIdsOfTrack(trackId: String): List<Long>
+
+    @Query("SELECT trackId FROM playlist_tracks WHERE playlistId = :playlistId")
+    suspend fun getTrackIdsOfPlaylist(playlistId: Long): List<String>
+
     @Insert
     suspend fun insertPlaylist(playlist: PlaylistEntity): Long
 

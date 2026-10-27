@@ -1,12 +1,8 @@
 package com.example.pulse.ui.library
 
-import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle
-import android.text.InputType
 import android.view.View
-import android.widget.EditText
-import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.isVisible
@@ -19,7 +15,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.pulse.R
 import com.example.pulse.data.Track
 import com.example.pulse.databinding.FragmentLibraryBinding
+import com.example.pulse.ui.common.SheetAction
+import com.example.pulse.ui.common.TrackOptionsSheet
 import com.example.pulse.ui.player.PlayerViewModel
+import com.example.pulse.ui.playlists.AddToPlaylistFragment
 import kotlinx.coroutines.launch
 
 class LibraryFragment : Fragment(R.layout.fragment_library) {
@@ -65,7 +64,7 @@ class LibraryFragment : Fragment(R.layout.fragment_library) {
         _binding = FragmentLibraryBinding.bind(view)
 
         trackAdapter = TrackAdapter(
-            onTrackLongClick = { track -> showAddToPlaylistDialog(track) },
+            onMoreClick = { track -> showTrackOptions(track) },
             onTrackClick = { track -> playerViewModel.onTrackClick(track) }
         )
         binding.tracksRecyclerView.apply {
@@ -80,44 +79,19 @@ class LibraryFragment : Fragment(R.layout.fragment_library) {
         observeState()
     }
 
-    private fun showAddToPlaylistDialog(track: Track) {
-        val playlists = libraryViewModel.playlists.value
-        val items = (playlists.map { it.name } + "➕ Создать новый плейлист").toTypedArray()
-
-        AlertDialog.Builder(requireContext())
-            .setTitle("Добавить в плейлист")
-            .setItems(items) { _, which ->
-                if (which < playlists.size) {
-                    libraryViewModel.addTrackToPlaylist(track, playlists[which])
-                } else {
-                    showCreatePlaylistDialog(track)
-                }
-            }
-            .setNegativeButton("Отмена", null)
-            .show()
+    private fun showTrackOptions(track: Track) {
+        TrackOptionsSheet.show(
+            requireContext(),
+            track,
+            listOf(SheetAction("Добавить в плейлист") { openAddToPlaylist(track) })
+        )
     }
 
-    private fun showCreatePlaylistDialog(track: Track) {
-        val input = EditText(requireContext()).apply {
-            hint = "Название"
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
-            setSingleLine()
-        }
-
-        val density = resources.displayMetrics.density
-        val container = FrameLayout(requireContext()).apply {
-            setPadding((24 * density).toInt(), (8 * density).toInt(), (24 * density).toInt(), 0)
-            addView(input)
-        }
-
-        AlertDialog.Builder(requireContext())
-            .setTitle("Новый плейлист")
-            .setView(container)
-            .setPositiveButton("Создать") { _, _ ->
-                libraryViewModel.createPlaylistAndAddTrack(track, input.text.toString())
-            }
-            .setNegativeButton("Отмена", null)
-            .show()
+    private fun openAddToPlaylist(track: Track) {
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.fragmentContainer, AddToPlaylistFragment.newInstance(track.id))
+            .addToBackStack(null)
+            .commit()
     }
 
     private fun observeState() {

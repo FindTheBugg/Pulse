@@ -60,6 +60,38 @@ class PlaylistRepository(context: Context) {
         playlistDao.removeTrackFromPlaylist(playlistId, trackId)
     }
 
+    suspend fun playlistIdsOfTrack(trackId: String): List<Long> =
+        withContext(Dispatchers.IO) { playlistDao.getPlaylistIdsOfTrack(trackId) }
+
+    suspend fun trackIdsOf(playlistId: Long): List<String> =
+        withContext(Dispatchers.IO) { playlistDao.getTrackIdsOfPlaylist(playlistId) }
+
+    suspend fun addTrackToPlaylists(trackId: String, playlistIds: List<Long>): Int =
+        withContext(Dispatchers.IO) {
+            val now = System.currentTimeMillis()
+            try {
+                playlistDao.addLinks(
+                    playlistIds.map { PlaylistTrackEntity(it, trackId, now) }
+                ).count { it != -1L }
+            } catch (e: SQLiteConstraintException) {
+                0
+            }
+        }
+
+    suspend fun addTracksToPlaylist(playlistId: Long, trackIds: List<String>): Int =
+        withContext(Dispatchers.IO) {
+            val now = System.currentTimeMillis()
+            try {
+                playlistDao.addLinks(
+                    trackIds.mapIndexed { index, trackId ->
+                        PlaylistTrackEntity(playlistId, trackId, now + index)
+                    }
+                ).count { it != -1L }
+            } catch (e: SQLiteConstraintException) {
+                0
+            }
+        }
+
     suspend fun createPlaylistReturningId(name: String): Long? = withContext(Dispatchers.IO) {
         val cleanName = name.trim()
         if (cleanName.isEmpty()) return@withContext null

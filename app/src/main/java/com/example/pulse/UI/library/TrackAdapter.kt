@@ -1,15 +1,15 @@
 package com.example.pulse.ui.library
 
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.example.pulse.R
 import com.example.pulse.data.Track
 import com.example.pulse.databinding.ItemTrackBinding
 
 class TrackAdapter(
-    private val onTrackLongClick: ((Track) -> Unit)? = null,
+    private val onMoreClick: ((Track) -> Unit)? = null,
     private val onTrackClick: (Track) -> Unit
 ) : RecyclerView.Adapter<TrackAdapter.TrackViewHolder>() {
 
@@ -59,18 +59,17 @@ class TrackAdapter(
         holder.binding.tvTrackArtist.text = track.artist
         holder.binding.tvTrackDuration.text = formatDuration(track.duration)
 
-        holder.binding.trackFrame.setEffectEnabled(
-            track.id == currentTrackId
+        holder.itemView.setBackgroundResource(
+            if (track.id == currentTrackId) R.drawable.bg_track_playing
+            else R.drawable.bg_track_normal
         )
 
         holder.itemView.setOnClickListener {
             onTrackClick(track)
         }
 
-        holder.itemView.setOnLongClickListener {
-            onTrackLongClick?.invoke(track)
-            onTrackLongClick != null
-        }
+        holder.binding.btnMore.isVisible = onMoreClick != null
+        holder.binding.btnMore.setOnClickListener { onMoreClick?.invoke(track) }
     }
 
     override fun getItemCount(): Int = tracks.size

@@ -32,6 +32,14 @@
             android:textColor="@color/text_primary"
             android:textSize="28sp"
             android:textStyle="bold" />
+        <TextView
+            android:id="@+id/btnAddTracks"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingStart="16dp"
+            android:text="＋"
+            android:textColor="@color/text_primary"
+            android:textSize="28sp" />
     </LinearLayout>
 
     <TextView

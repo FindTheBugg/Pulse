@@ -16,6 +16,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.pulse.R
 import com.example.pulse.data.Track
 import com.example.pulse.databinding.FragmentPlaylistDetailBinding
+import com.example.pulse.ui.common.SheetAction
+import com.example.pulse.ui.common.TrackOptionsSheet
 import com.example.pulse.ui.library.TrackAdapter
 import com.example.pulse.ui.player.PlayerViewModel
 import kotlinx.coroutines.launch
@@ -34,7 +36,7 @@ class PlaylistDetailFragment : Fragment(R.layout.fragment_playlist_detail) {
         _binding = FragmentPlaylistDetailBinding.bind(view)
 
         trackAdapter = TrackAdapter(
-            onTrackLongClick = { track -> showRemoveDialog(track) },
+            onMoreClick = { track -> showTrackOptions(track) },
             onTrackClick = { track ->
                 playerViewModel.onPlaylistTrackClick(track, currentTracks)
             }
@@ -57,6 +59,25 @@ class PlaylistDetailFragment : Fragment(R.layout.fragment_playlist_detail) {
         }
 
         observeState()
+    }
+
+    private fun showTrackOptions(track: Track) {
+        TrackOptionsSheet.show(
+            requireContext(),
+            track,
+            listOf(
+                SheetAction("Добавить в плейлист") {
+                    parentFragmentManager.beginTransaction()
+                        .replace(
+                            R.id.fragmentContainer,
+                            AddToPlaylistFragment.newInstance(track.id)
+                        )
+                        .addToBackStack(null)
+                        .commit()
+                },
+                SheetAction("Убрать из этого плейлиста") { showRemoveDialog(track) }
+            )
+        )
     }
 
     private fun observeState() {
