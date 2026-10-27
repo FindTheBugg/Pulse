@@ -59,10 +59,7 @@ class TrackAdapter(
         holder.binding.tvTrackArtist.text = track.artist
         holder.binding.tvTrackDuration.text = formatDuration(track.duration)
 
-        holder.itemView.setBackgroundResource(
-            if (track.id == currentTrackId) R.drawable.bg_track_playing
-            else R.drawable.bg_track_normal
-        )
+        holder.binding.trackFrame.setEffectEnabled(track.id == currentTrackId)
 
         holder.itemView.setOnClickListener {
             onTrackClick(track)
