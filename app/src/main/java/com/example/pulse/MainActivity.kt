@@ -1,21 +1,36 @@
 
 package com.example.pulse
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
-import androidx.activity.enableEdgeToEdge
+import android.provider.Settings
+import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.FileProvider
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.example.pulse.databinding.ActivityMainBinding
 import com.example.pulse.ui.library.LibraryFragment
 import com.example.pulse.ui.overview.OverviewFragment
+import com.example.pulse.ui.player.PlayerFragment
 import com.example.pulse.ui.playlists.PlaylistsFragment
 import com.example.pulse.ui.settings.SettingsFragment
-import com.example.pulse.ui.player.PlayerFragment
+import com.example.pulse.update.UpdateEvent
+import com.example.pulse.update.UpdateViewModel
+import kotlinx.coroutines.launch
+import java.io.File
+
 class MainActivity : AppCompatActivity() {
+
+    private val updateViewModel: UpdateViewModel by viewModels()
 
     private lateinit var binding: ActivityMainBinding
 
@@ -52,7 +67,57 @@ class MainActivity : AppCompatActivity() {
         if (savedInstanceState == null) {
             openFragment(LibraryFragment())
         }
+        observeUpdates()
     }
+
+    private fun observeUpdates() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                updateViewModel.events.collect { event ->
+                    when (event) {
+                        is UpdateEvent.Message ->
+                            Toast.makeText(this@MainActivity, event.text, Toast.LENGTH_LONG).show()
+                        is UpdateEvent.ReadyToInstall -> installApk(event.file)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun installApk(file: File) {
+        if (!packageManager.canRequestPackageInstalls()) {
+            updateViewModel.awaitingInstallPermission = file
+            Toast.makeText(
+                this,
+                "Разреши установку обновлений для Pulse и вернись в приложение",
+                Toast.LENGTH_LONG
+            ).show()
+            startActivity(
+                Intent(
+                    Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+                    Uri.parse("package:$packageName")
+                )
+            )
+            return
+        }
+
+        val uri = FileProvider.getUriForFile(this, "$packageName.fileprovider", file)
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(uri, "application/vnd.android.package-archive")
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        startActivity(intent)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val waiting = updateViewModel.awaitingInstallPermission ?: return
+        if (packageManager.canRequestPackageInstalls()) {
+            updateViewModel.awaitingInstallPermission = null
+            installApk(waiting)
+        }
+    }
+
     private fun setupWindowInsets() {
         val root = binding.root
         val initialTop = root.paddingTop

@@ -13,8 +13,8 @@ android {
         applicationId = "com.example.pulse"
         minSdk = 28
         targetSdk = 37
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 26105
+        versionName = "26.10.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
