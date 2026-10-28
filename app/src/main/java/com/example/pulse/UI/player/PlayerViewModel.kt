@@ -17,7 +17,7 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
     val playerState: StateFlow<PlayerState> = musicPlayerManager.playerState
     val currentTrack: StateFlow<Track?> = musicPlayerManager.currentTrack
     private var libraryTracks: List<Track> = emptyList()
-    private var queueIsLibrary = true
+    private var queueIsLibrary = false
 
     val hasTrack: Boolean
         get() = musicPlayerManager.hasTrack

@@ -13,8 +13,8 @@ android {
         applicationId = "com.example.pulse"
         minSdk = 28
         targetSdk = 37
-        versionCode = 26105
-        versionName = "26.10.5"
+        versionCode = 26106
+        versionName = "26.10.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -40,6 +40,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.media3.session)
     implementation("androidx.fragment:fragment-ktx:1.8.9")
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.room.runtime)

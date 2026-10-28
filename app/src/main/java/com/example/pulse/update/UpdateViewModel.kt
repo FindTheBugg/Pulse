@@ -35,7 +35,7 @@ class UpdateViewModel(application: Application) : AndroidViewModel(application) 
         }
 
         if (info.versionCode <= repository.currentVersionCode()) {
-            _events.send(UpdateEvent.Message("Установлена актуальная версия"))
+            _events.send(UpdateEvent.Message("Установлена актуальная версия \uD83D\uDC85"))
             return
         }
 
