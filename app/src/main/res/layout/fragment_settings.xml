@@ -30,4 +30,20 @@
         android:layout_marginTop="24dp"
         android:text="Очистить библиотеку" />
 
+    <androidx.appcompat.widget.AppCompatButton
+        style="@style/Widget.Pulse.Button"
+        android:id="@+id/btnCheckUpdate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="Проверить обновление" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="420dp"
+        android:text="created by Gurtovoy Vadim v26.10.6.2"
+        android:textColor="@color/text_secondary"
+        android:textSize="16sp" />
+
 </LinearLayout>

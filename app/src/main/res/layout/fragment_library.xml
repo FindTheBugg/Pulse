@@ -22,12 +22,15 @@
             android:textSize="28sp"
             android:textStyle="bold" />
 
-        <TextView
+        <ImageButton
             android:id="@+id/addMusicButton"
-            style="@style/Widget.Pulse.RoundButton"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:text="＋" />
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:padding="8dp"
+            android:src="@drawable/btn_add_playlist"
+            android:scaleType="fitCenter"
+            android:background="@android:color/transparent"
+            android:contentDescription="Создать плейлист" />
     </LinearLayout>
 
     <FrameLayout
