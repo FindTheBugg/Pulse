@@ -9,15 +9,21 @@ import com.example.pulse.databinding.ItemTrackBinding
 
 class TrackAdapter(
     private val onMoreClick: ((Track) -> Unit)? = null,
-    private val onTrackClick: (Track) -> Unit
+    private val onTrackClick: (Track) -> Unit,
+    private var unavailableIds: Set<String> = emptySet()
 ) : RecyclerView.Adapter<TrackAdapter.TrackViewHolder>() {
-
     private val tracks = mutableListOf<Track>()
     private var currentTrackId: String? = null
 
     fun setTracks(newTracks: List<Track>) {
         tracks.clear()
         tracks.addAll(newTracks)
+        notifyDataSetChanged()
+    }
+
+    fun setUnavailableIds(ids: Set<String>) {
+        if (ids == unavailableIds) return
+        unavailableIds = ids
         notifyDataSetChanged()
     }
 
@@ -56,7 +62,12 @@ class TrackAdapter(
 
         holder.binding.tvTrackTitle.text = track.title
         holder.binding.tvTrackArtist.text = track.artist
-        holder.binding.tvTrackDuration.text = formatDuration(track.duration)
+        holder.binding.btnMore.isVisible = onMoreClick != null
+        holder.binding.btnMore.setOnClickListener { onMoreClick?.invoke(track) }
+        val unavailable = track.id in unavailableIds
+        holder.binding.tvTrackDuration.text =
+            if (unavailable) "Файл недоступен" else formatDuration(track.duration)
+        holder.itemView.alpha = if (unavailable) 0.25f else 1f
 
         holder.binding.trackFrame.setEffectEnabled(track.id == currentTrackId)
         holder.itemView.setOnClickListener {

@@ -11,7 +11,8 @@ data class ChoiceItem(
     val id: String,
     val title: String,
     val subtitle: String,
-    val alreadyAdded: Boolean
+    val alreadyAdded: Boolean,
+    val unavailable: Boolean = false
 )
 
 class ChoiceAdapter(
@@ -40,11 +41,14 @@ class ChoiceAdapter(
 
         holder.binding.tvChoiceTitle.text = item.title
         holder.binding.tvChoiceSubtitle.text = item.subtitle
-        holder.binding.checkChoice.isChecked = item.alreadyAdded || item.id in selectedIds
-        holder.itemView.alpha = if (item.alreadyAdded) 0.5f else 1f
+        val locked = item.alreadyAdded || item.unavailable
+
+        holder.binding.checkChoice.isChecked =
+            item.alreadyAdded || (!item.unavailable && item.id in selectedIds)
+        holder.itemView.alpha = if (locked) 0.5f else 1f
 
         holder.itemView.setOnClickListener {
-            if (item.alreadyAdded) return@setOnClickListener
+            if (locked) return@setOnClickListener
             if (!selectedIds.remove(item.id)) selectedIds.add(item.id)
 
             val pos = holder.bindingAdapterPosition

@@ -29,19 +29,18 @@ class MusicPlayerManager(context: Context) {
 
     private val appContext = context.applicationContext
 
-    // Пульт к плееру в сервисе. null, пока соединение не установлено
     private var controller: MediaController? = null
     private val controllerFuture: ListenableFuture<MediaController>
 
-    // Библиотека, пришедшая до установки соединения
     private var pendingLibrary: List<Track>? = null
 
     private val _playerState = MutableStateFlow(PlayerState())
     val playerState: StateFlow<PlayerState> = _playerState.asStateFlow()
 
     private val _currentTrack = MutableStateFlow<Track?>(null)
+    private val _isConnected = MutableStateFlow(false)
+    val isConnected: StateFlow<Boolean> = _isConnected.asStateFlow()
     val currentTrack: StateFlow<Track?> = _currentTrack.asStateFlow()
-
     val hasTrack: Boolean
         get() = controller?.currentMediaItem != null
 
@@ -80,11 +79,10 @@ class MusicPlayerManager(context: Context) {
             pendingLibrary = null
 
             if (connected.isPlaying) startProgressUpdates()
-            refresh()   // сервис уже мог играть: сразу показываем его трек
+            refresh()
+            _isConnected.value = true
         }, ContextCompat.getMainExecutor(appContext))
     }
-
-    // ---------- Состояние ----------
 
     private fun refresh() {
         val c = controller ?: return
@@ -117,9 +115,6 @@ class MusicPlayerManager(context: Context) {
         progressJob = null
     }
 
-    // ---------- Очередь ----------
-
-    // Запустить трек и сделать newQueue текущей очередью
     fun playTrack(track: Track, newQueue: List<Track>) {
         val c = controller ?: return
         val queue = if (newQueue.any { it.id == track.id }) newQueue else listOf(track)
@@ -130,12 +125,20 @@ class MusicPlayerManager(context: Context) {
         c.play()
     }
 
-    // Заменить очередь, не прерывая музыку
+    fun restoreTrack(track: Track, newQueue: List<Track>, positionMs: Long) {
+        val c = controller ?: return
+        val queue = if (newQueue.any { it.id == track.id }) newQueue else listOf(track)
+        val index = queue.indexOfFirst { it.id == track.id }
+
+        c.setMediaItems(queue.map { it.toMediaItem() }, index, positionMs)
+        c.playWhenReady = false
+        c.prepare()
+        refresh()
+    }
     fun setQueue(newQueue: List<Track>) {
         syncQueue(newQueue)
     }
 
-    // Библиотека изменилась: убрать из очереди удалённые треки
     fun onLibraryChanged(library: List<Track>) {
         val c = controller
         if (c == null) {
@@ -157,7 +160,6 @@ class MusicPlayerManager(context: Context) {
         return (0 until c.mediaItemCount).mapNotNull { c.getMediaItemAt(it).toTrack() }
     }
 
-    // Подменяем элементы до и после текущего, сам играющий трек не трогаем
     private fun syncQueue(newQueue: List<Track>) {
         val c = controller ?: return
         val currentId = c.currentMediaItem?.mediaId ?: return
@@ -176,7 +178,6 @@ class MusicPlayerManager(context: Context) {
         c.addMediaItems(0, newQueue.take(index).map { it.toMediaItem() })
     }
 
-    // ---------- Управление ----------
 
     fun playNext() {
         val c = controller ?: return
@@ -214,7 +215,6 @@ class MusicPlayerManager(context: Context) {
         refresh()
     }
 
-    // Отпускаем только пульт. Плеер в сервисе продолжает играть
     fun release() {
         stopProgressUpdates()
         scope.cancel()
@@ -223,7 +223,6 @@ class MusicPlayerManager(context: Context) {
         controller = null
     }
 
-    // ---------- Track <-> MediaItem ----------
 
     private fun Track.toMediaItem(): MediaItem =
         MediaItem.Builder()

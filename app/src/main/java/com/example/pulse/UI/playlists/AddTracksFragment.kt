@@ -36,12 +36,6 @@ class AddTracksFragment : Fragment(R.layout.fragment_choice) {
             adapter = choiceAdapter
         }
 
-        binding.addMusicButton.setOnClickListener {
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.fragmentContainer, AddTracksFragment.newInstance(viewModel.playlistId))
-                .addToBackStack(null)
-                .commit()
-        }
 
         binding.btnBack.setOnClickListener { parentFragmentManager.popBackStack() }
         binding.btnConfirm.setOnClickListener { confirm() }

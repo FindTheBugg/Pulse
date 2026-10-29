@@ -74,6 +74,15 @@ class LibraryFragment : Fragment(R.layout.fragment_library) {
     }
 
     private fun showTrackOptions(track: Track) {
+        if (track.id in playerViewModel.unavailableIds.value) {
+            Toast.makeText(
+                requireContext(),
+                "Файл недоступен: добавить в плейлист нельзя",
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+
         TrackOptionsSheet.show(
             requireContext(),
             track,
@@ -91,6 +100,12 @@ class LibraryFragment : Fragment(R.layout.fragment_library) {
     private fun observeState() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+
+                launch {
+                    playerViewModel.unavailableIds.collect { ids ->
+                        trackAdapter.setUnavailableIds(ids)
+                    }
+                }
 
                 launch {
                     libraryViewModel.tracks.collect { tracks ->

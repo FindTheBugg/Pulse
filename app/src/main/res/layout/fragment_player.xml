@@ -10,8 +10,8 @@
 
     <ImageView
         android:id="@+id/albumCover"
-        android:layout_width="240dp"
-        android:layout_height="240dp"
+        android:layout_width="350dp"
+        android:layout_height="350dp"
         android:src="@android:drawable/ic_media_play"
         android:contentDescription="Обложка трека"
         android:scaleType="centerInside"

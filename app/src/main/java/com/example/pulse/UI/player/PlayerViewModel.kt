@@ -1,23 +1,29 @@
 package com.example.pulse.ui.player
 
 import android.app.Application
+import android.os.SystemClock
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pulse.data.MusicPlayerManager
+import com.example.pulse.data.PlaybackIssues
+import com.example.pulse.data.PlaybackStore
 import com.example.pulse.data.PlayerState
 import com.example.pulse.data.Track
 import com.example.pulse.data.TrackRepository
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class PlayerViewModel(application: Application) : AndroidViewModel(application) {
 
     private val musicPlayerManager = MusicPlayerManager(application)
     private val repository = TrackRepository(application)
+    private val playbackStore = PlaybackStore(application)
     val playerState: StateFlow<PlayerState> = musicPlayerManager.playerState
     val currentTrack: StateFlow<Track?> = musicPlayerManager.currentTrack
     private var libraryTracks: List<Track> = emptyList()
     private var queueIsLibrary = false
+    val unavailableIds: StateFlow<Set<String>> = PlaybackIssues.unavailable
 
     val hasTrack: Boolean
         get() = musicPlayerManager.hasTrack
@@ -31,6 +37,26 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
                     musicPlayerManager.setQueue(tracks)
                 }
             }
+        }
+    }
+
+    init {
+        viewModelScope.launch {
+            musicPlayerManager.isConnected.first { it }
+            val library = repository.tracks.first()
+
+            if (musicPlayerManager.hasTrack) return@launch
+
+            val (savedId, savedPosition) = playbackStore.read() ?: return@launch
+            val track = library.firstOrNull { it.id == savedId }
+            if (track == null) {
+                playbackStore.clear()
+                return@launch
+            }
+
+            val position = if (savedPosition > track.duration - 3_000) 0L else savedPosition
+            queueIsLibrary = true
+            musicPlayerManager.restoreTrack(track, library, position)
         }
     }
 

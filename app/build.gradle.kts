@@ -40,6 +40,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.media3.session)
     implementation("androidx.fragment:fragment-ktx:1.8.9")
     implementation(libs.androidx.media3.exoplayer)

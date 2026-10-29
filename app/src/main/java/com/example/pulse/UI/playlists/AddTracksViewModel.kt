@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import com.example.pulse.data.PlaybackIssues
 import com.example.pulse.data.PlaylistRepository
 import com.example.pulse.data.TrackRepository
 import com.example.pulse.ui.common.ChoiceItem
@@ -34,23 +35,37 @@ class AddTracksViewModel(
     }
 
     val choices: StateFlow<List<ChoiceItem>?> =
-        combine(trackRepository.tracks, alreadyIn) { tracks, already ->
+        combine(
+            trackRepository.tracks,
+            alreadyIn,
+            PlaybackIssues.unavailable
+        ) { tracks, already, unavailable ->
             if (already == null) {
                 null
             } else {
                 tracks.map {
+                    val inPlaylist = it.id in already
+                    val broken = it.id in unavailable
                     ChoiceItem(
                         id = it.id,
                         title = it.title,
-                        subtitle = if (it.id in already) "Уже в плейлисте" else it.artist,
-                        alreadyAdded = it.id in already
+                        subtitle = when {
+                            inPlaylist -> "Уже в плейлисте"
+                            broken -> "Файл недоступен"
+                            else -> it.artist
+                        },
+                        alreadyAdded = inPlaylist,
+                        unavailable = broken
                     )
                 }
             }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
-    suspend fun confirm(selectedIds: Set<String>): Int =
-        playlistRepository.addTracksToPlaylist(playlistId, selectedIds.toList())
+    suspend fun confirm(selectedIds: Set<String>): Int {
+        val allowed = selectedIds - PlaybackIssues.unavailable.value
+        if (allowed.isEmpty()) return 0
+        return playlistRepository.addTracksToPlaylist(playlistId, allowed.toList())
+    }
 
     companion object {
         const val ARG_PLAYLIST_ID = "playlistId"

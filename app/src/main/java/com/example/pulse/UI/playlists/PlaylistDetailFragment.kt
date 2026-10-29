@@ -74,27 +74,30 @@ class PlaylistDetailFragment : Fragment(R.layout.fragment_playlist_detail) {
     }
 
     private fun showTrackOptions(track: Track) {
-        TrackOptionsSheet.show(
-            requireContext(),
-            track,
-            listOf(
-                SheetAction("Добавить в плейлист") {
-                    parentFragmentManager.beginTransaction()
-                        .replace(
-                            R.id.fragmentContainer,
-                            AddToPlaylistFragment.newInstance(track.id)
-                        )
-                        .addToBackStack(null)
-                        .commit()
-                },
-                SheetAction("Убрать из этого плейлиста") { showRemoveDialog(track) }
-            )
-        )
+        val actions = mutableListOf<SheetAction>()
+
+        if (track.id !in playerViewModel.unavailableIds.value) {
+            actions += SheetAction("Добавить в плейлист") {
+                parentFragmentManager.beginTransaction()
+                    .replace(R.id.fragmentContainer, AddToPlaylistFragment.newInstance(track.id))
+                    .addToBackStack(null)
+                    .commit()
+            }
+        }
+        actions += SheetAction("Убрать из этого плейлиста") { showRemoveDialog(track) }
+
+        TrackOptionsSheet.show(requireContext(), track, actions)
     }
 
     private fun observeState() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+
+                launch {
+                    playerViewModel.unavailableIds.collect { ids ->
+                        trackAdapter.setUnavailableIds(ids)
+                    }
+                }
 
                 launch {
                     viewModel.playlist.collect { playlist ->
