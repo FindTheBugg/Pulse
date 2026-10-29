@@ -23,27 +23,33 @@
         android:textSize="16sp" />
 
     <androidx.appcompat.widget.AppCompatButton
-        style="@style/Widget.Pulse.Button"
         android:id="@+id/btnClearLibrary"
+        style="@style/Widget.Pulse.Button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:text="Очистить библиотеку" />
 
     <androidx.appcompat.widget.AppCompatButton
-        style="@style/Widget.Pulse.Button"
         android:id="@+id/btnCheckUpdate"
+        style="@style/Widget.Pulse.Button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:text="Проверить обновление" />
 
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="420dp"
+        android:gravity="start"
         android:text="created by Gurtovoy Vadim v26.10.6.2"
         android:textColor="@color/text_secondary"
-        android:textSize="16sp" />
+        android:textSize="12sp" />
 
 </LinearLayout>

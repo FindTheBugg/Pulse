@@ -24,7 +24,7 @@ class UpdateViewModel(application: Application) : AndroidViewModel(application) 
         viewModelScope.launch { checkForUpdate() }
     }
 
-    private suspend fun checkForUpdate() {
+    suspend fun checkForUpdate() {
         val info = try {
             repository.fetchLatest()
         } catch (e: CancellationException) {

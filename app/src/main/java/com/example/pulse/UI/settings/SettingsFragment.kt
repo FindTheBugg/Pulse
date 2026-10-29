@@ -8,16 +8,16 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.example.pulse.R
-import com.example.pulse.ui.player.PlayerViewModel
 import com.example.pulse.data.TrackRepository
 import com.example.pulse.databinding.FragmentSettingsBinding
+import com.example.pulse.update.UpdateViewModel
 import kotlinx.coroutines.launch
 
 class SettingsFragment : Fragment(R.layout.fragment_settings) {
 
     private var _binding: FragmentSettingsBinding? = null
     private val binding get() = _binding!!
-    private val playerViewModel: PlayerViewModel by activityViewModels()
+    private val updateViewModel: UpdateViewModel by activityViewModels()
     private val repository by lazy { TrackRepository(requireContext()) }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -26,6 +26,11 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
 
         binding.btnClearLibrary.setOnClickListener {
             showClearConfirmation()
+        }
+        binding.btnCheckUpdate.setOnClickListener {
+            viewLifecycleOwner.lifecycleScope.launch {
+                updateViewModel.checkForUpdate()
+            }
         }
     }
 
