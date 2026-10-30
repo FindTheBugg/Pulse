@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/app_background"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="Нововведения"
+        android:textColor="@color/base_white"
+        android:textSize="20sp" />
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="1 Реализовал кнопки перемешать и случайный
+        порядок на экране плеера&#010;2 Реализовал обновлениеудаленных треков
+        (автоматическое и по кнопке) списка на экране
+        библиотеки&#010;3 реализовал экран нововведений&#010;4 реализовал полоску с плеером&#010;5 реализовал чтение метаданных картинки альбома&#010;6 "
+        android:textAlignment="textStart"
+        android:textColor="@color/base_white"
+        android:textSize="15sp" />
+
+</LinearLayout>
