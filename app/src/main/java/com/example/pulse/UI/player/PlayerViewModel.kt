@@ -89,6 +89,14 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
         musicPlayerManager.playNext()
     }
 
+    fun onRepeatClick() {
+        musicPlayerManager.cycleRepeatMode()
+    }
+
+    fun onShuffleClick() {
+        musicPlayerManager.toggleShuffle()
+    }
+
     fun onPreviousClick() {
         musicPlayerManager.playPrevious()
     }

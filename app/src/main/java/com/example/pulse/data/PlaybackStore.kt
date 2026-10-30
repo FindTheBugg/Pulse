@@ -1,7 +1,9 @@
 package com.example.pulse.data
 
 import android.content.Context
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -27,11 +29,28 @@ class PlaybackStore(context: Context) {
     }
 
     suspend fun clear() {
-        store.edit { it.clear() }
+        store.edit {
+            it.remove(KEY_TRACK_ID)
+            it.remove(KEY_POSITION)
+        }
+    }
+    suspend fun saveModes(repeatMode: Int, shuffle: Boolean) {
+        store.edit {
+            it[KEY_REPEAT] = repeatMode
+            it[KEY_SHUFFLE] = shuffle
+        }
+    }
+
+    suspend fun readModes(): Pair<Int, Boolean>? {
+        val prefs = store.data.first()
+        val repeat = prefs[KEY_REPEAT] ?: return null
+        return repeat.coerceIn(0, 2) to (prefs[KEY_SHUFFLE] ?: false)
     }
 
     private companion object {
         val KEY_TRACK_ID = stringPreferencesKey("track_id")
         val KEY_POSITION = longPreferencesKey("position_ms")
+        val KEY_REPEAT = intPreferencesKey("repeat_mode")
+        val KEY_SHUFFLE = booleanPreferencesKey("shuffle")
     }
 }

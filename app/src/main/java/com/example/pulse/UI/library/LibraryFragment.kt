@@ -17,6 +17,7 @@ import com.example.pulse.data.Track
 import com.example.pulse.databinding.FragmentLibraryBinding
 import com.example.pulse.ui.common.SheetAction
 import com.example.pulse.ui.common.TrackOptionsSheet
+import com.example.pulse.ui.common.tracksText
 import com.example.pulse.ui.player.PlayerViewModel
 import com.example.pulse.ui.playlists.AddToPlaylistFragment
 import kotlinx.coroutines.launch
@@ -68,6 +69,10 @@ class LibraryFragment : Fragment(R.layout.fragment_library) {
 
         binding.addMusicButton.setOnClickListener {
             audioPicker.launch(arrayOf("audio/*"))
+        }
+
+        binding.btnRefresh.setOnClickListener {
+            libraryViewModel.checkLibrary(manual = true)
         }
 
         observeState()
@@ -127,10 +132,23 @@ class LibraryFragment : Fragment(R.layout.fragment_library) {
                         Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
                     }
                 }
+                launch {
+                    libraryViewModel.tracks.collect { tracks ->
+                        if (tracks == null) return@collect
+                        trackAdapter.setTracks(tracks)
+                        binding.tvTrackCount.text = tracksText(tracks.size)
+                        binding.emptyStateText.isVisible = tracks.isEmpty()
+                        binding.tracksRecyclerView.isVisible = tracks.isNotEmpty()
+                    }
+                }
             }
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        libraryViewModel.checkLibrary(false)
+    }
     private fun showPermissionError() {
         Toast.makeText(
             requireContext(),

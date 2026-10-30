@@ -56,7 +56,18 @@ class PlaybackService : MediaSessionService() {
 
         playbackStore = PlaybackStore(this)
 
+        serviceScope.launch {
+            playbackStore.readModes()?.let { (repeat, shuffle) ->
+                player.repeatMode = repeat
+                player.shuffleModeEnabled = shuffle
+            }
+        }
+
         player.addListener(object : Player.Listener {
+
+            override fun onRepeatModeChanged(repeatMode: Int) = saveModes(player)
+
+            override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) = saveModes(player)
 
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 saveJob?.cancel()
@@ -102,7 +113,14 @@ class PlaybackService : MediaSessionService() {
                     Toast.LENGTH_SHORT
                 ).show()
 
-                player.seekToNextMediaItem()
+                when {
+                    player.hasNextMediaItem() -> player.seekToNextMediaItem()
+                    player.repeatMode == Player.REPEAT_MODE_OFF -> {
+                        player.stop()
+                        return
+                    }
+                    else -> player.seekTo(0, 0L)
+                }
                 player.prepare()
                 player.play()
             }
@@ -111,6 +129,12 @@ class PlaybackService : MediaSessionService() {
         mediaSession = MediaSession.Builder(this, player)
             .setSessionActivity(openAppIntent)
             .build()
+    }
+
+    private fun saveModes(player: Player) {
+        serviceScope.launch {
+            playbackStore.saveModes(player.repeatMode, player.shuffleModeEnabled)
+        }
     }
 
     private fun saveProgress(player: Player) {

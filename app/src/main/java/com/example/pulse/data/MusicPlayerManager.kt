@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import android.net.Uri
+import com.example.pulse.data.RepeatMode
 
 class MusicPlayerManager(context: Context) {
 
@@ -48,6 +49,11 @@ class MusicPlayerManager(context: Context) {
     private var progressJob: Job? = null
 
     private val listener = object : Player.Listener {
+
+        override fun onRepeatModeChanged(repeatMode: Int) = refresh()
+
+        override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) = refresh()
+
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) = refresh()
 
         override fun onIsPlayingChanged(isPlaying: Boolean) {
@@ -96,7 +102,9 @@ class MusicPlayerManager(context: Context) {
             playWhenReady = c.playWhenReady,
             isEnded = c.playbackState == Player.STATE_ENDED,
             positionMs = c.currentPosition.coerceAtLeast(0L),
-            durationMs = duration.coerceAtLeast(0L)
+            durationMs = duration.coerceAtLeast(0L),
+            repeatMode = c.repeatMode.toRepeatMode(),
+            shuffleEnabled = c.shuffleModeEnabled
         )
     }
 
@@ -181,14 +189,37 @@ class MusicPlayerManager(context: Context) {
 
     fun playNext() {
         val c = controller ?: return
-        c.seekToNextMediaItem()
+        when {
+            c.hasNextMediaItem() -> c.seekToNextMediaItem()
+            c.repeatMode != Player.REPEAT_MODE_OFF && c.mediaItemCount > 0 -> c.seekTo(0, 0L)
+            else -> return
+        }
         c.play()
     }
 
     fun playPrevious() {
         val c = controller ?: return
-        c.seekToPreviousMediaItem()
+        when {
+            c.hasPreviousMediaItem() -> c.seekToPreviousMediaItem()
+            c.repeatMode != Player.REPEAT_MODE_OFF && c.mediaItemCount > 0 ->
+                c.seekTo(c.mediaItemCount - 1, 0L)
+            else -> c.seekTo(0)
+        }
         c.play()
+    }
+
+    fun cycleRepeatMode() {
+        val c = controller ?: return
+        c.repeatMode = when (c.repeatMode) {
+            Player.REPEAT_MODE_OFF -> Player.REPEAT_MODE_ALL
+            Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_ONE
+            else -> Player.REPEAT_MODE_OFF
+        }
+    }
+
+    fun toggleShuffle() {
+        val c = controller ?: return
+        c.shuffleModeEnabled = !c.shuffleModeEnabled
     }
 
     fun seekTo(positionMs: Long) {
@@ -236,6 +267,11 @@ class MusicPlayerManager(context: Context) {
                     .build()
             )
             .build()
+    private fun Int.toRepeatMode() = when (this) {
+        Player.REPEAT_MODE_ONE -> RepeatMode.ONE
+        Player.REPEAT_MODE_ALL -> RepeatMode.ALL
+        else -> RepeatMode.OFF
+    }
 
     private fun MediaItem.toTrack(): Track? {
         val extras = mediaMetadata.extras ?: return null

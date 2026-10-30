@@ -10,6 +10,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.pulse.R
+import com.example.pulse.data.RepeatMode
 import com.example.pulse.databinding.FragmentPlayerBinding
 import kotlinx.coroutines.launch
 import com.example.pulse.ui.player.PlayerViewModel
@@ -47,6 +48,33 @@ class PlayerFragment : Fragment(R.layout.fragment_player) {
         }
         binding.btnNext.setOnClickListener {
             playerViewModel.onNextClick()
+        }
+        binding.btnShuffle.setOnClickListener {
+            val willBeOn = !playerViewModel.playerState.value.shuffleEnabled
+            playerViewModel.onShuffleClick()
+            Toast.makeText(
+                requireContext(),
+                if (willBeOn) "Перемешивание включено" else "Перемешивание выключено",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+
+        binding.btnRepeat.setOnClickListener {
+            val next = when (playerViewModel.playerState.value.repeatMode) {
+                RepeatMode.OFF -> RepeatMode.ALL
+                RepeatMode.ALL -> RepeatMode.ONE
+                RepeatMode.ONE -> RepeatMode.OFF
+            }
+            playerViewModel.onRepeatClick()
+            Toast.makeText(
+                requireContext(),
+                when (next) {
+                    RepeatMode.OFF -> "Повтор выключен"
+                    RepeatMode.ALL -> "Повтор всего списка"
+                    RepeatMode.ONE -> "Повтор одного трека"
+                },
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
 
@@ -94,6 +122,13 @@ class PlayerFragment : Fragment(R.layout.fragment_player) {
 
                 launch {
                     playerViewModel.playerState.collect { state ->
+
+                        binding.btnShuffle.alpha = if (state.shuffleEnabled) 1f else 0.4f
+                        binding.btnRepeat.setImageResource(
+                            if (state.repeatMode == RepeatMode.ONE) R.drawable.ic_repeat_one else R.drawable.ic_repeat
+                        )
+                        binding.btnRepeat.alpha = if (state.repeatMode == RepeatMode.OFF) 0.4f else 1f
+
                         binding.btnPlayPause.text =
                             if (state.isPlaying) "⏸" else "▶"
 
