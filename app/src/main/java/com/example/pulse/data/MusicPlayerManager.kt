@@ -29,40 +29,29 @@ import com.example.pulse.data.RepeatMode
 class MusicPlayerManager(context: Context) {
 
     private val appContext = context.applicationContext
-
     private var controller: MediaController? = null
     private val controllerFuture: ListenableFuture<MediaController>
-
     private var pendingLibrary: List<Track>? = null
-
     private val _playerState = MutableStateFlow(PlayerState())
     val playerState: StateFlow<PlayerState> = _playerState.asStateFlow()
-
     private val _currentTrack = MutableStateFlow<Track?>(null)
     private val _isConnected = MutableStateFlow(false)
     val isConnected: StateFlow<Boolean> = _isConnected.asStateFlow()
     val currentTrack: StateFlow<Track?> = _currentTrack.asStateFlow()
     val hasTrack: Boolean
         get() = controller?.currentMediaItem != null
-
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var progressJob: Job? = null
-
     private val listener = object : Player.Listener {
 
         override fun onRepeatModeChanged(repeatMode: Int) = refresh()
-
         override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) = refresh()
-
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) = refresh()
-
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             if (isPlaying) startProgressUpdates() else stopProgressUpdates()
             refresh()
         }
-
         override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) = refresh()
-
         override fun onPlaybackStateChanged(playbackState: Int) = refresh()
     }
 

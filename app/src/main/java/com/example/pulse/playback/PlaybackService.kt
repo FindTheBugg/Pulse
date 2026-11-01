@@ -2,6 +2,7 @@ package com.example.pulse.playback
 
 import android.app.PendingIntent
 import android.content.Intent
+import android.net.Uri
 import android.widget.Toast
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
@@ -12,6 +13,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import com.example.pulse.MainActivity
+import com.example.pulse.data.CoverStore
 import com.example.pulse.data.PlaybackIssues
 import com.example.pulse.data.PlaybackStore
 import kotlinx.coroutines.CoroutineScope
@@ -30,6 +32,7 @@ class PlaybackService : MediaSessionService() {
     private var consecutiveErrors = 0
     private lateinit var playbackStore: PlaybackStore
     private var mediaSession: MediaSession? = null
+    private lateinit var coverStore: CoverStore
 
     override fun onCreate() {
         super.onCreate()
@@ -55,6 +58,7 @@ class PlaybackService : MediaSessionService() {
         )
 
         playbackStore = PlaybackStore(this)
+        coverStore = CoverStore(this)
 
         serviceScope.launch {
             playbackStore.readModes()?.let { (repeat, shuffle) ->
@@ -88,6 +92,7 @@ class PlaybackService : MediaSessionService() {
 
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 saveProgress(player)
+                attachCover(player, mediaItem)
             }
 
             override fun onPlayerError(error: PlaybackException) {
@@ -131,6 +136,28 @@ class PlaybackService : MediaSessionService() {
             .build()
     }
 
+    private fun attachCover(player: Player, item: MediaItem?) {
+        if (item == null || item.mediaMetadata.artworkUri != null) return
+        val uriString = item.mediaMetadata.extras?.getString("uri") ?: return
+
+        serviceScope.launch {
+            val file = coverStore.coverFile(item.mediaId, Uri.parse(uriString)) ?: return@launch
+
+            val index = (0 until player.mediaItemCount)
+                .firstOrNull { player.getMediaItemAt(it).mediaId == item.mediaId }
+                ?: return@launch
+
+            val current = player.getMediaItemAt(index)
+            val updated = current.buildUpon()
+                .setMediaMetadata(
+                    current.mediaMetadata.buildUpon()
+                        .setArtworkUri(Uri.fromFile(file))
+                        .build()
+                )
+                .build()
+            player.replaceMediaItem(index, updated)
+        }
+    }
     private fun saveModes(player: Player) {
         serviceScope.launch {
             playbackStore.saveModes(player.repeatMode, player.shuffleModeEnabled)

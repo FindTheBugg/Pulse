@@ -40,6 +40,7 @@ class TrackRepository(context: Context) {
                     )
                 } catch (_: SecurityException) { }
             }
+        //CoverStore(appContext).clear()
         trackDao.deleteAllTracks()
     }
 

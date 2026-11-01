@@ -6,13 +6,35 @@
     android:orientation="vertical"
     android:padding="24dp">
 
-    <TextView
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:text="Нововведения"
-        android:textColor="@color/base_white"
-        android:textSize="20sp" />
+        android:layout_marginTop="20dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/btnBack"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:padding="8dp"
+            android:src="@drawable/btn_back"
+            android:scaleType="fitCenter"
+            android:background="@android:color/transparent"
+            android:textSize="28sp" />
+
+        <TextView
+            android:id="@+id/tvPlaylistName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="Нововведения"
+            android:textColor="@color/text_primary"
+            android:textSize="28sp"
+            android:textStyle="bold" />
+    </LinearLayout>
 
 
     <TextView
@@ -22,7 +44,7 @@
         android:text="1 Реализовал кнопки перемешать и случайный
         порядок на экране плеера&#010;2 Реализовал обновлениеудаленных треков
         (автоматическое и по кнопке) списка на экране
-        библиотеки&#010;3 реализовал экран нововведений&#010;4 реализовал полоску с плеером&#010;5 реализовал чтение метаданных картинки альбома&#010;6 "
+        библиотеки&#010;3 Реализовал экран нововведений&#010;4 Реализовал mini плеер&#010;5 Реализовал чтение метаданных картинки альбома&#010;6 Небольшие правки по UI&#010;7 Новые баги 🌸"
         android:textAlignment="textStart"
         android:textColor="@color/base_white"
         android:textSize="15sp" />

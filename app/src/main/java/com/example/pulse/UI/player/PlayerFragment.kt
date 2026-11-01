@@ -10,16 +10,19 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.pulse.R
+import com.example.pulse.data.CoverStore
 import com.example.pulse.data.RepeatMode
 import com.example.pulse.databinding.FragmentPlayerBinding
 import kotlinx.coroutines.launch
 import com.example.pulse.ui.player.PlayerViewModel
+import kotlinx.coroutines.flow.collectLatest
+
 class PlayerFragment : Fragment(R.layout.fragment_player) {
 
     private var _binding: FragmentPlayerBinding? = null
     private val binding get() = _binding!!
     private val playerViewModel: PlayerViewModel by activityViewModels()
-
+    private val coverStore by lazy { CoverStore(requireContext()) }
     private var isUserSeeking = false
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -109,13 +112,22 @@ class PlayerFragment : Fragment(R.layout.fragment_player) {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
 
                 launch {
-                    playerViewModel.currentTrack.collect { track ->
+                    playerViewModel.currentTrack.collectLatest { track ->
                         if (track == null) {
                             binding.tvTrackTitle.text = "Трек не выбран"
                             binding.tvTrackArtist.text = "Выбери музыку в коллекции"
+                            binding.albumCover.setImageResource(R.drawable.ic_cover_placeholder)
+                            return@collectLatest
+                        }
+                        binding.tvTrackTitle.text = track.title
+                        binding.tvTrackArtist.text = track.artist
+
+                        val cached = coverStore.cached(track.id)
+                        if (cached != null) {
+                            binding.albumCover.setImageBitmap(cached)
                         } else {
-                            binding.tvTrackTitle.text = track.title
-                            binding.tvTrackArtist.text = track.artist
+                            binding.albumCover.setImageResource(R.drawable.ic_cover_placeholder)
+                            coverStore.loadBitmap(track)?.let { binding.albumCover.setImageBitmap(it) }
                         }
                     }
                 }
@@ -129,8 +141,10 @@ class PlayerFragment : Fragment(R.layout.fragment_player) {
                         )
                         binding.btnRepeat.alpha = if (state.repeatMode == RepeatMode.OFF) 0.4f else 1f
 
-                        binding.btnPlayPause.text =
-                            if (state.isPlaying) "⏸" else "▶"
+                        binding.btnPlayPause.setImageResource(
+                            if (state.isPlaying) R.drawable.ic_pause else R.drawable.ic_play
+                        )
+
 
                         binding.seekBarProgress.isEnabled = state.durationMs > 0
                         binding.seekBarProgress.max = state.durationMs.toInt()

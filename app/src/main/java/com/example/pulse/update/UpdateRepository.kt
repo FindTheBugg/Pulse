@@ -56,7 +56,7 @@ class UpdateRepository(context: Context) {
                         if (read < 0) break
                         output.write(buffer, 0, read)
                         digest.update(buffer, 0, read)
-                        ensureActive()   // если корутину отменили, выходим
+                        ensureActive()
                     }
                 }
             }

@@ -9,8 +9,6 @@ object PlaybackIssues {
 
     private val _unavailable = MutableStateFlow<Set<String>>(emptySet())
     val unavailable: StateFlow<Set<String>> = _unavailable.asStateFlow()
-
     fun markUnavailable(trackId: String) = _unavailable.update { it + trackId }
-
     fun markAvailable(trackId: String) = _unavailable.update { it - trackId }
 }

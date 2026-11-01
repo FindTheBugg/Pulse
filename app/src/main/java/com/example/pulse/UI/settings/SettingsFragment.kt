@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.example.pulse.R
+import com.example.pulse.ui.settings.InfoFragment
 import com.example.pulse.data.TrackRepository
 import com.example.pulse.databinding.FragmentSettingsBinding
 import com.example.pulse.update.UpdateViewModel
@@ -31,6 +32,14 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
             viewLifecycleOwner.lifecycleScope.launch {
                 updateViewModel.checkForUpdate()
             }
+        }
+
+        binding.releasesButton.setOnClickListener {
+            parentFragmentManager
+                .beginTransaction()
+                .replace(R.id.fragmentContainer, InfoFragment())
+                .addToBackStack(null)
+                .commit()
         }
     }
 

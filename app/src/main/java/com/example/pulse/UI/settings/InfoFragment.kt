@@ -1,4 +1,4 @@
-package com.example.pulse.UI.settings
+package com.example.pulse.ui.settings
 
 import android.os.Bundle
 import android.view.View
@@ -14,6 +14,10 @@ class InfoFragment: Fragment(R.layout.fragment_info) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentInfoBinding.bind(view)
+        binding.btnBack.setOnClickListener {
+            parentFragmentManager.popBackStack()
+        }
+
     }
 
     override fun onDestroyView() {
