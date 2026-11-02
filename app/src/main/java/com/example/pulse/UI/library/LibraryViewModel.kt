@@ -9,16 +9,26 @@ import androidx.lifecycle.viewModelScope
 import com.example.pulse.data.Track
 import com.example.pulse.data.TrackRepository
 import com.example.pulse.ui.common.tracksText
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
+
+
+data class LibraryUiState(
+    val tracks: List<Track>,
+    val totalCount: Int,
+    val filtering: Boolean
+)
 
 class LibraryViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -35,6 +45,47 @@ class LibraryViewModel(application: Application) : AndroidViewModel(application)
     val messages: Flow<String> = _messages.receiveAsFlow()
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
+    private val _query = MutableStateFlow("")
+    val query: StateFlow<String> = _query.asStateFlow()
+    private val _sort = MutableStateFlow(SortOrder.TITLE)
+    val sort: StateFlow<SortOrder> = _sort.asStateFlow()
+
+    val state: StateFlow<LibraryUiState?> =
+        combine(tracks, _query, _sort) { all, query, sort ->
+            if (all == null) {
+                null
+            } else {
+                val q = query.trim()
+                val filtered = if (q.isEmpty()) all else all.filter {
+                    it.title.contains(q, ignoreCase = true) ||
+                            it.artist.contains(q, ignoreCase = true)
+                }
+                LibraryUiState(sortTracks(filtered, sort), all.size, q.isNotEmpty())
+            }
+        }
+            .flowOn(Dispatchers.Default)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    fun setQuery(text: String) {
+        _query.value = text
+    }
+
+    fun setSort(order: SortOrder) {
+        _sort.value = order
+    }
+
+    private fun sortTracks(list: List<Track>, order: SortOrder): List<Track> = when (order) {
+        SortOrder.TITLE -> list.sortedWith(
+            compareBy<Track, String>(String.CASE_INSENSITIVE_ORDER) { it.title }
+        )
+        SortOrder.ARTIST -> list.sortedWith(
+            compareBy<Track, String>(String.CASE_INSENSITIVE_ORDER) { it.artist }
+                .thenBy(String.CASE_INSENSITIVE_ORDER) { it.title }
+        )
+        SortOrder.DURATION -> list.sortedBy { it.duration }
+    }
+
+
 
     fun onAudiosSelected(uris: List<Uri>) {
         viewModelScope.launch {
@@ -86,4 +137,5 @@ class LibraryViewModel(application: Application) : AndroidViewModel(application)
             Log.d("Pulse", "checkLibrary() called")
         }
     }
+
 }

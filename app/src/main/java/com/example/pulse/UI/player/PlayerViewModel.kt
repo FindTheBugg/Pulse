@@ -85,6 +85,11 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
+    fun onLibraryTrackClick(track: Track, shown: List<Track>) {
+        queueIsLibrary = false
+        musicPlayerManager.playTrack(track, shown)
+    }
+
     fun onNextClick() {
         musicPlayerManager.playNext()
     }
