@@ -83,6 +83,10 @@ class LibraryViewModel(application: Application) : AndroidViewModel(application)
                 .thenBy(String.CASE_INSENSITIVE_ORDER) { it.title }
         )
         SortOrder.DURATION -> list.sortedBy { it.duration }
+        SortOrder.ADDED -> list.sortedWith(
+            compareByDescending<Track> { it.addedAt }
+                .thenBy(String.CASE_INSENSITIVE_ORDER) { it.title }
+        )
     }
 
 

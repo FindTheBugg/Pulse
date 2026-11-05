@@ -9,7 +9,8 @@ fun Track.toEntity(): TrackEntity {
         uri = uri.toString(),
         title = title,
         artist = artist,
-        duration = duration
+        duration = duration,
+        addedAt = addedAt
     )
 }
 
@@ -19,6 +20,7 @@ fun TrackEntity.toTrack(): Track {
         uri = Uri.parse(uri),
         title = title,
         artist = artist,
-        duration = duration
+        duration = duration,
+        addedAt = addedAt
     )
 }

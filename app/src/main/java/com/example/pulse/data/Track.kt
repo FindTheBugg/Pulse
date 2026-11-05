@@ -7,5 +7,6 @@ data class Track (
     val uri: Uri,
     val title: String,
     val artist: String,
-    val duration: Long
+    val duration: Long,
+    val addedAt: Long = 0L
 )

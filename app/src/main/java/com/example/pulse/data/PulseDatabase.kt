@@ -11,18 +11,34 @@ import androidx.sqlite.db.SupportSQLiteDatabase
     entities = [
         TrackEntity::class,
         PlaylistEntity::class,
-        PlaylistTrackEntity::class
+        PlaylistTrackEntity::class,
+        TrackStatsEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class PulseDatabase : RoomDatabase() {
-
+    abstract fun statsDao(): TrackStatsDao
     abstract fun trackDao(): TrackDao
     abstract fun playlistDao(): PlaylistDao
     companion object {
         @Volatile
         private var INSTANCE: PulseDatabase? = null
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `tracks` ADD COLUMN `addedAt` INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("UPDATE `tracks` SET `addedAt` = rowid")
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `track_stats` (" +
+                            "`trackId` TEXT NOT NULL, " +
+                            "`playCount` INTEGER NOT NULL, " +
+                            "`lastPlayedAt` INTEGER NOT NULL, " +
+                            "PRIMARY KEY(`trackId`), " +
+                            "FOREIGN KEY(`trackId`) REFERENCES `tracks`(`id`) " +
+                            "ON UPDATE NO ACTION ON DELETE CASCADE)"
+                )
+            }
+        }
 
         private val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(db: SupportSQLiteDatabase) {
@@ -57,7 +73,7 @@ abstract class PulseDatabase : RoomDatabase() {
                     PulseDatabase::class.java,
                     "pulse_database"
                 )
-                    .addMigrations(MIGRATION_1_2)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                     .build()
                     .also { INSTANCE = it }
             }

@@ -1,5 +1,6 @@
 package com.example.pulse.data
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -10,5 +11,7 @@ data class TrackEntity(
     val uri: String,
     val title: String,
     val artist: String,
-    val duration: Long
+    val duration: Long,
+    @ColumnInfo(defaultValue = "0")
+    val addedAt: Long = 0L
 )

@@ -14,6 +14,7 @@ import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import com.example.pulse.MainActivity
 import com.example.pulse.data.CoverStore
+import com.example.pulse.data.PlayStatsRepository
 import com.example.pulse.data.PlaybackIssues
 import com.example.pulse.data.PlaybackStore
 import kotlinx.coroutines.CoroutineScope
@@ -33,6 +34,8 @@ class PlaybackService : MediaSessionService() {
     private lateinit var playbackStore: PlaybackStore
     private var mediaSession: MediaSession? = null
     private lateinit var coverStore: CoverStore
+    private lateinit var playStats: PlayStatsRepository
+    private var countedMediaId: String? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -58,6 +61,7 @@ class PlaybackService : MediaSessionService() {
         )
 
         playbackStore = PlaybackStore(this)
+        playStats = PlayStatsRepository(this)
         coverStore = CoverStore(this)
 
         serviceScope.launch {
@@ -84,6 +88,11 @@ class PlaybackService : MediaSessionService() {
                             delay(5_000)
                             saveProgress(player)
                         }
+                        while (isActive) {
+                            delay(5_000)
+                            saveProgress(player)
+                            countPlayIfNeeded(player)
+                        }
                     }
                 } else {
                     saveProgress(player)
@@ -91,6 +100,11 @@ class PlaybackService : MediaSessionService() {
             }
 
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT ||
+                    mediaItem?.mediaId != countedMediaId
+                ) {
+                    countedMediaId = null
+                }
                 saveProgress(player)
                 attachCover(player, mediaItem)
             }
@@ -134,6 +148,18 @@ class PlaybackService : MediaSessionService() {
         mediaSession = MediaSession.Builder(this, player)
             .setSessionActivity(openAppIntent)
             .build()
+    }
+    private fun countPlayIfNeeded(player: Player) {
+        val id = player.currentMediaItem?.mediaId ?: return
+        if (id == countedMediaId) return
+
+        val duration = player.duration
+            .takeIf { it != C.TIME_UNSET && it > 0 } ?: Long.MAX_VALUE
+        val threshold = minOf(COUNT_AFTER_MS, duration / 2)
+        if (player.currentPosition < threshold) return
+
+        countedMediaId = id
+        serviceScope.launch { playStats.recordPlay(id) }
     }
 
     private fun attachCover(player: Player, item: MediaItem?) {
@@ -182,5 +208,8 @@ class PlaybackService : MediaSessionService() {
         saveJob?.cancel()
         serviceScope.cancel()
         super.onDestroy()
+    }
+    private companion object {
+        const val COUNT_AFTER_MS = 10_000L
     }
 }

@@ -23,7 +23,9 @@ class TrackRepository(context: Context) {
 
     suspend fun addTrack(uri: Uri): Boolean = withContext(Dispatchers.IO) {
         val track = metadataReader.readTrack(uri)
-        trackDao.insertTrack(track.toEntity()) != -1L
+        trackDao.insertTrack(
+            track.copy(addedAt = System.currentTimeMillis()).toEntity()
+        ) != -1L
     }
 
     suspend fun clearAll() = withContext(Dispatchers.IO) {
