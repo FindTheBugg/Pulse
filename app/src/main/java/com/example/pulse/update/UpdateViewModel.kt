@@ -30,7 +30,6 @@ class UpdateViewModel(application: Application) : AndroidViewModel(application) 
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            Log.w(TAG, "Не удалось проверить обновление", e)
             return
         }
 
@@ -46,11 +45,9 @@ class UpdateViewModel(application: Application) : AndroidViewModel(application) 
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            Log.w(TAG, "Не удалось скачать обновление", e)
             _events.send(UpdateEvent.Message("Не удалось скачать обновление"))
         }
     }
-
     private companion object {
         const val TAG = "UpdateViewModel"
     }

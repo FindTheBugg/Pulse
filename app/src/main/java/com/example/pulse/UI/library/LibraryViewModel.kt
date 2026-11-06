@@ -122,7 +122,6 @@ class LibraryViewModel(application: Application) : AndroidViewModel(application)
         _isRefreshing.value = true
 
         viewModelScope.launch {
-            Log.d("Pulse", "checkLibrary() called")
             try {
                 val removed = repository.removeUnavailable()
                 when {
@@ -138,7 +137,6 @@ class LibraryViewModel(application: Application) : AndroidViewModel(application)
             } finally {
                 _isRefreshing.value = false
             }
-            Log.d("Pulse", "checkLibrary() called")
         }
     }
 

@@ -11,3 +11,10 @@ fun tracksText(count: Int): String {
     }
     return "$count $word"
 }
+
+fun timesText(count: Int): String {
+    val mod10 = count % 10
+    val mod100 = count % 100
+    val word = if (mod100 !in 11..14 && mod10 in 2..4) "раза" else "раз"
+    return "$count $word"
+}

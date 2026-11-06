@@ -3,6 +3,7 @@ package com.example.pulse.playback
 import android.app.PendingIntent
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import android.widget.Toast
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
@@ -87,10 +88,6 @@ class PlaybackService : MediaSessionService() {
                         while (isActive) {
                             delay(5_000)
                             saveProgress(player)
-                        }
-                        while (isActive) {
-                            delay(5_000)
-                            saveProgress(player)
                             countPlayIfNeeded(player)
                         }
                     }
@@ -152,7 +149,6 @@ class PlaybackService : MediaSessionService() {
     private fun countPlayIfNeeded(player: Player) {
         val id = player.currentMediaItem?.mediaId ?: return
         if (id == countedMediaId) return
-
         val duration = player.duration
             .takeIf { it != C.TIME_UNSET && it > 0 } ?: Long.MAX_VALUE
         val threshold = minOf(COUNT_AFTER_MS, duration / 2)

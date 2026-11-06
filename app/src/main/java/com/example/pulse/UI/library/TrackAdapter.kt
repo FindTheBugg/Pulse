@@ -16,7 +16,13 @@ class TrackAdapter(
 
     private var currentTrackId: String? = null
     private var unavailableIds: Set<String> = emptySet()
+    private var extraInfo: Map<String, String> = emptyMap()
 
+    fun setExtraInfo(info: Map<String, String>) {
+        if (info == extraInfo) return
+        extraInfo = info
+        notifyItemRangeChanged(0, itemCount)
+    }
     fun setTracks(newTracks: List<Track>) {
         submitList(newTracks)
     }
@@ -58,12 +64,15 @@ class TrackAdapter(
     override fun onBindViewHolder(holder: TrackViewHolder, position: Int) {
         val track = getItem(position)
         val unavailable = track.id in unavailableIds
+        val extra = extraInfo[track.id]
 
         holder.binding.tvTrackTitle.text = track.title
         holder.binding.tvTrackArtist.text = track.artist
-        holder.binding.tvTrackDuration.text =
-            if (unavailable) "Файл недоступен" else formatDuration(track.duration)
-        holder.itemView.alpha = if (unavailable) 0.45f else 1f
+        holder.binding.tvTrackDuration.text = when {
+            unavailable -> "Файл недоступен"
+            extra != null -> "${formatDuration(track.duration)} · $extra"
+            else -> formatDuration(track.duration)
+        }
 
         holder.binding.trackFrame.setEffectEnabled(track.id == currentTrackId)
 

@@ -2,15 +2,20 @@ package com.example.pulse.data
 
 import androidx.room.Dao
 import androidx.room.Delete
+import androidx.room.Embedded
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.example.pulse.data.TrackEntity
 import kotlinx.coroutines.flow.Flow
 
+
+data class TrackPlayRow(
+    @Embedded val track: TrackEntity,
+    val playCount: Int
+)
 @Dao
 interface TrackDao {
-
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertTrack(track: TrackEntity): Long
 
@@ -28,4 +33,20 @@ interface TrackDao {
 
     @Query("DELETE FROM tracks WHERE id IN (:ids)")
     suspend fun deleteByIds(ids: List<String>)
+
+//    @Query(
+//        "SELECT t.*, s.playCount AS playCount FROM tracks t " +
+//                "INNER JOIN track_stats s ON s.trackId = t.id " +
+//                "WHERE s.playCount > 0 " +
+//                "ORDER BY s.lastPlayedAt DESC LIMIT :limit"
+//    )
+//    fun observeRecent(limit: Int): Flow<List<TrackPlayRow>>
+//
+//    @Query(
+//        "SELECT t.*, s.playCount AS playCount FROM tracks t " +
+//                "INNER JOIN track_stats s ON s.trackId = t.id " +
+//                "WHERE s.playCount > 0 " +
+//                "ORDER BY s.playCount DESC, s.lastPlayedAt DESC LIMIT :limit"
+//    )
+//    fun observeMostPlayed(limit: Int): Flow<List<TrackPlayRow>>
 }

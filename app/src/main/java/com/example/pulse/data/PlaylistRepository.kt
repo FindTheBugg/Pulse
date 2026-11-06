@@ -91,12 +91,4 @@ class PlaylistRepository(context: Context) {
                 0
             }
         }
-
-    suspend fun createPlaylistReturningId(name: String): Long? = withContext(Dispatchers.IO) {
-        val cleanName = name.trim()
-        if (cleanName.isEmpty()) return@withContext null
-        playlistDao.insertPlaylist(
-            PlaylistEntity(name = cleanName, createdAt = System.currentTimeMillis())
-        )
-    }
 }
