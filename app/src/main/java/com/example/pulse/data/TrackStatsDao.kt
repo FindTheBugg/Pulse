@@ -5,12 +5,6 @@ import androidx.room.Embedded
 import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
 
-//// Трек вместе со счётчиком. @Embedded значит «возьми столбцы tracks целиком»
-//data class TrackPlayRow(
-//    @Embedded val track: TrackEntity,
-//    val playCount: Int
-//)
-
 @Dao
 interface TrackStatsDao {
 

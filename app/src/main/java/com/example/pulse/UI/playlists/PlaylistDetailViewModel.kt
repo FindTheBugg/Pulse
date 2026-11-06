@@ -20,16 +20,12 @@ class PlaylistDetailViewModel(
 
     val playlistId: Long =
         savedStateHandle[ARG_PLAYLIST_ID] ?: error("playlistId не передан")
-
     private val repository = PlaylistRepository(application)
-
     val playlist: StateFlow<Playlist?> = repository.playlists
         .map { list -> list.firstOrNull { it.id == playlistId } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
-
     val tracks: StateFlow<List<Track>?> = repository.tracksOf(playlistId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
-
     fun removeTrack(trackId: String) {
         viewModelScope.launch {
             repository.removeTrack(playlistId, trackId)

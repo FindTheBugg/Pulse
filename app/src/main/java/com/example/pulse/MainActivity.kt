@@ -198,14 +198,11 @@ class MainActivity : AppCompatActivity() {
                 WindowInsetsCompat.Type.statusBars() or
                         WindowInsetsCompat.Type.displayCutout()
             )
-
             view.updatePadding(
                 top = initialTop + systemBars.top
             )
-
             insets
         }
-
         ViewCompat.requestApplyInsets(root)
     }
     private fun openFragment(fragment: Fragment) {

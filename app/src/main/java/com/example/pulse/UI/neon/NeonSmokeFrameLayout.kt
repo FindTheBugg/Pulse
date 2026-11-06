@@ -25,7 +25,6 @@ class NeonSmokeFrameLayout @JvmOverloads constructor(
 
     private val density = resources.displayMetrics.density
     private fun dp(value: Float): Float = value * density
-
     private var effectEnabled = false
     private var effectAlpha = 0f
     private var effectBitmap: Bitmap? = null

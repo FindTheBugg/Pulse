@@ -50,18 +50,15 @@ class PlaylistDetailFragment : Fragment(R.layout.fragment_playlist_detail) {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = trackAdapter
         }
-
         binding.btnBack.setOnClickListener {
             parentFragmentManager.popBackStack()
         }
-
         binding.btnAddTracks.setOnClickListener {
             parentFragmentManager.beginTransaction()
                 .replace(R.id.fragmentContainer, AddTracksFragment.newInstance(viewModel.playlistId))
                 .addToBackStack(null)
                 .commit()
         }
-
         binding.btnPlayPlaylist.setOnClickListener {
             if (currentTracks.isEmpty()) {
                 Toast.makeText(requireContext(), "В плейлисте нет треков", Toast.LENGTH_SHORT).show()

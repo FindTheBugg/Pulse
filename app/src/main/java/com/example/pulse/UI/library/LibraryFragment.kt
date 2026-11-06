@@ -111,12 +111,10 @@ class LibraryFragment : Fragment(R.layout.fragment_library) {
     private fun setupSearch() {
         binding.etSearch.setText(libraryViewModel.query.value)
         binding.btnClearSearch.isVisible = binding.etSearch.text.isNotEmpty()
-
         binding.etSearch.doAfterTextChanged { text ->
             libraryViewModel.setQuery(text?.toString().orEmpty())
             binding.btnClearSearch.isVisible = !text.isNullOrEmpty()
         }
-
         binding.btnClearSearch.setOnClickListener {
             binding.etSearch.text.clear()
         }
@@ -132,7 +130,6 @@ class LibraryFragment : Fragment(R.layout.fragment_library) {
                 false
             }
         }
-
         binding.btnSort.setOnClickListener { showSortMenu(it) }
     }
 

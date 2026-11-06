@@ -14,10 +14,8 @@ import java.io.File
 class UpdateViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = UpdateRepository(application)
-
     private val _events = Channel<UpdateEvent>(Channel.BUFFERED)
     val events: Flow<UpdateEvent> = _events.receiveAsFlow()
-
     var awaitingInstallPermission: File? = null
 
     init {

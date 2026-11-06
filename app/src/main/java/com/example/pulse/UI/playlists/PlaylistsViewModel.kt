@@ -16,7 +16,6 @@ import kotlinx.coroutines.launch
 class PlaylistsViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = PlaylistRepository(application)
-
     val playlists: StateFlow<List<Playlist>?> = repository.playlists
         .stateIn(
             scope = viewModelScope,

@@ -57,6 +57,7 @@ class CoverStore(context: Context) {
         }
     }
 
+    // нигде не юзается
     fun clear() {
         memory.evictAll()
         dir.listFiles()?.forEach { it.delete() }

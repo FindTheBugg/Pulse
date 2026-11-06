@@ -110,6 +110,7 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
         musicPlayerManager.seekTo(positionMs)
     }
 
+    // под вопросом
     fun stop() {
         musicPlayerManager.stop()
     }

@@ -20,9 +20,7 @@ class AddToPlaylistViewModel(
 
     private val trackId: String =
         savedStateHandle[ARG_TRACK_ID] ?: error("trackId не передан")
-
     private val repository = PlaylistRepository(application)
-
     private val alreadyIn = MutableStateFlow<Set<Long>?>(null)
 
     init {

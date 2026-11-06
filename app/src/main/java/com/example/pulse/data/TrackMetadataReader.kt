@@ -13,15 +13,12 @@ class TrackMetadataReader(
 
         try {
             retriever.setDataSource(context, uri)
-
             val title = retriever.extractMetadata(
                 MediaMetadataRetriever.METADATA_KEY_TITLE
             ) ?: "Неизвестный трек"
-
             val artist = retriever.extractMetadata(
                 MediaMetadataRetriever.METADATA_KEY_ARTIST
             ) ?: "Неизвестный исполнитель"
-
             val duration = retriever.extractMetadata(
                 MediaMetadataRetriever.METADATA_KEY_DURATION
             )?.toLongOrNull() ?: 0L

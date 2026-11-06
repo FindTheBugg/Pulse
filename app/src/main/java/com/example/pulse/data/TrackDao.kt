@@ -34,19 +34,4 @@ interface TrackDao {
     @Query("DELETE FROM tracks WHERE id IN (:ids)")
     suspend fun deleteByIds(ids: List<String>)
 
-//    @Query(
-//        "SELECT t.*, s.playCount AS playCount FROM tracks t " +
-//                "INNER JOIN track_stats s ON s.trackId = t.id " +
-//                "WHERE s.playCount > 0 " +
-//                "ORDER BY s.lastPlayedAt DESC LIMIT :limit"
-//    )
-//    fun observeRecent(limit: Int): Flow<List<TrackPlayRow>>
-//
-//    @Query(
-//        "SELECT t.*, s.playCount AS playCount FROM tracks t " +
-//                "INNER JOIN track_stats s ON s.trackId = t.id " +
-//                "WHERE s.playCount > 0 " +
-//                "ORDER BY s.playCount DESC, s.lastPlayedAt DESC LIMIT :limit"
-//    )
-//    fun observeMostPlayed(limit: Int): Flow<List<TrackPlayRow>>
 }

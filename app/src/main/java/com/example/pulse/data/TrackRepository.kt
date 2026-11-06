@@ -42,7 +42,6 @@ class TrackRepository(context: Context) {
                     )
                 } catch (_: SecurityException) { }
             }
-        //CoverStore(appContext).clear()
         trackDao.deleteAllTracks()
     }
 
@@ -81,22 +80,4 @@ class TrackRepository(context: Context) {
     } catch (e: IOException) {
         true
     }
-
-//    private fun isAccessible(uri: Uri): Boolean {
-//        return try {
-//            appContext.contentResolver.query(
-//                uri,
-//                arrayOf(MediaStore.Audio.Media._ID),
-//                null,
-//                null,
-//                null
-//            )?.use { cursor ->
-//                cursor.moveToFirst()
-//            } ?: false
-//        } catch (e: SecurityException) {
-//            false
-//        } catch (e: IllegalArgumentException) {
-//            false
-//        }
-//    }
 }

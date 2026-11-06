@@ -23,13 +23,10 @@ class OverviewFragment : Fragment(R.layout.fragment_overview) {
 
     private var _binding: FragmentOverviewBinding? = null
     private val binding get() = _binding!!
-
     private val viewModel: OverviewViewModel by activityViewModels()
     private val playerViewModel: PlayerViewModel by activityViewModels()
-
     private lateinit var recentAdapter: TrackAdapter
     private lateinit var popularAdapter: TrackAdapter
-
     private var recentTracks: List<Track> = emptyList()
     private var popularTracks: List<Track> = emptyList()
 
