@@ -74,6 +74,7 @@ class MainActivity : AppCompatActivity() {
 
             if (fragment != null) {
                 openFragment(fragment)
+                supportFragmentManager.executePendingTransactions()
                 currentTab.value = item.itemId
                 true
             } else {

@@ -17,18 +17,22 @@ import com.example.pulse.databinding.FragmentOverviewBinding
 import com.example.pulse.ui.common.timesText
 import com.example.pulse.ui.library.TrackAdapter
 import com.example.pulse.ui.player.PlayerViewModel
+import com.google.android.material.tabs.TabLayout
 import kotlinx.coroutines.launch
 
 class OverviewFragment : Fragment(R.layout.fragment_overview) {
 
     private var _binding: FragmentOverviewBinding? = null
     private val binding get() = _binding!!
+
     private val viewModel: OverviewViewModel by activityViewModels()
     private val playerViewModel: PlayerViewModel by activityViewModels()
     private lateinit var recentAdapter: TrackAdapter
     private lateinit var popularAdapter: TrackAdapter
     private var recentTracks: List<Track> = emptyList()
     private var popularTracks: List<Track> = emptyList()
+    private var loaded = false
+    private var selectedTab = TAB_POPULAR
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -43,15 +47,43 @@ class OverviewFragment : Fragment(R.layout.fragment_overview) {
 
         setupList(binding.recentRecyclerView, recentAdapter)
         setupList(binding.popularRecyclerView, popularAdapter)
-
+        setupTabs()
         observeState()
     }
 
     private fun setupList(list: RecyclerView, adapter: TrackAdapter) {
         list.layoutManager = LinearLayoutManager(requireContext())
         list.adapter = adapter
-        list.isNestedScrollingEnabled = false
         (list.itemAnimator as? SimpleItemAnimator)?.supportsChangeAnimations = false
+    }
+
+    private fun setupTabs() {
+        val tabs = binding.overviewTabs
+        tabs.addTab(tabs.newTab().setText("Часто играемые"))
+        tabs.addTab(tabs.newTab().setText("Недавно проигранные"))
+
+        tabs.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: TabLayout.Tab) {
+                selectedTab = tab.position
+                render()
+            }
+            override fun onTabUnselected(tab: TabLayout.Tab) {}
+            override fun onTabReselected(tab: TabLayout.Tab) {}
+        })
+    }
+
+    private fun render() {
+        if (!loaded) return
+
+        val popular = selectedTab == TAB_POPULAR
+        val hasItems = (if (popular) popularTracks else recentTracks).isNotEmpty()
+
+        binding.popularRecyclerView.isVisible = popular && hasItems
+        binding.recentRecyclerView.isVisible = !popular && hasItems
+        binding.emptyStateText.isVisible = !hasItems
+        binding.emptyStateText.text =
+            if (popular) "Здесь появятся треки, которые ты слушаешь чаще всего"
+            else "Ты пока ничего не слушал.\nВключи что-нибудь!"
     }
 
     private fun observeState() {
@@ -71,10 +103,8 @@ class OverviewFragment : Fragment(R.layout.fragment_overview) {
                             state.popular.associate { it.track.id to timesText(it.playCount) }
                         )
 
-                        val nothing = recentTracks.isEmpty() && popularTracks.isEmpty()
-                        binding.emptyStateText.isVisible = nothing
-                        binding.sectionRecent.isVisible = recentTracks.isNotEmpty()
-                        binding.sectionPopular.isVisible = popularTracks.isNotEmpty()
+                        loaded = true
+                        render()
                     }
                 }
 
@@ -100,5 +130,10 @@ class OverviewFragment : Fragment(R.layout.fragment_overview) {
         binding.popularRecyclerView.adapter = null
         _binding = null
         super.onDestroyView()
+    }
+
+    private companion object {
+        const val TAB_POPULAR = 0
+        const val TAB_RECENT = 1
     }
 }
