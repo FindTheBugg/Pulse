@@ -37,17 +37,20 @@ class UpdateRepository(context: Context) {
         }
     }
 
-    suspend fun download(info: UpdateInfo): File = withContext(Dispatchers.IO) {
+    suspend fun download(info: UpdateInfo, onProgress: (Float) -> Unit): File = withContext(Dispatchers.IO) {
         val dir = File(appContext.cacheDir, "updates").apply { mkdirs() }
-        dir.listFiles()?.forEach { it.delete() }   // убираем старые загрузки
+        dir.listFiles()?.forEach { it.delete() }
 
         val part = File(dir, "pulse-update.part")
         val target = File(dir, "pulse-update.apk")
         val digest = MessageDigest.getInstance("SHA-256")
-
         val connection = open(info.apkUrl)
         try {
             check(connection.responseCode == 200) { "HTTP ${connection.responseCode}" }
+            val total = connection.contentLengthLong
+            var downloaded = 0L
+            var lastPermille = -1
+            onProgress(if (total > 0) 0f else -1f)
             connection.inputStream.use { input ->
                 part.outputStream().use { output ->
                     val buffer = ByteArray(32 * 1024)
@@ -57,6 +60,15 @@ class UpdateRepository(context: Context) {
                         output.write(buffer, 0, read)
                         digest.update(buffer, 0, read)
                         ensureActive()
+
+                        downloaded += read
+                        if (total > 0) {
+                            val permille = (downloaded * 1000 / total).toInt()
+                            if (permille != lastPermille) {
+                                lastPermille = permille
+                                onProgress((downloaded.toFloat() / total).coerceIn(0f, 1f))
+                            }
+                        }
                     }
                 }
             }

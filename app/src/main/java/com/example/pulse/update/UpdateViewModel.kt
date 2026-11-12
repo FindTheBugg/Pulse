@@ -7,6 +7,9 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import java.io.File
@@ -16,6 +19,8 @@ class UpdateViewModel(application: Application) : AndroidViewModel(application) 
     private val repository = UpdateRepository(application)
     private val _events = Channel<UpdateEvent>(Channel.BUFFERED)
     val events: Flow<UpdateEvent> = _events.receiveAsFlow()
+    private val _downloadProgress = MutableStateFlow<Float?>(null)
+    val downloadProgress: StateFlow<Float?> = _downloadProgress.asStateFlow()
     var awaitingInstallPermission: File? = null
 
     init {
@@ -38,7 +43,11 @@ class UpdateViewModel(application: Application) : AndroidViewModel(application) 
 
         _events.send(UpdateEvent.Message("Найдена версия ${info.versionName}, скачиваю в фоне"))
         try {
-            val file = repository.download(info)
+            val file = try {
+                repository.download(info) { progress -> _downloadProgress.value = progress }
+            } finally {
+                _downloadProgress.value = null
+            }
             _events.send(UpdateEvent.ReadyToInstall(file))
         } catch (e: CancellationException) {
             throw e

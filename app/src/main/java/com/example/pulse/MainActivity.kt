@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -100,13 +101,36 @@ class MainActivity : AppCompatActivity() {
     private fun observeUpdates() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                updateViewModel.events.collect { event ->
-                    when (event) {
-                        is UpdateEvent.Message ->
-                            Toast.makeText(this@MainActivity, event.text, Toast.LENGTH_LONG).show()
-                        is UpdateEvent.ReadyToInstall -> installApk(event.file)
+
+                launch {
+                    updateViewModel.events.collect { event ->
+                        when (event) {
+                            is UpdateEvent.Message ->
+                                Toast.makeText(this@MainActivity, event.text, Toast.LENGTH_LONG).show()
+                            is UpdateEvent.ReadyToInstall -> installApk(event.file)
+                        }
                     }
                 }
+
+                launch {
+                    updateViewModel.downloadProgress.collect { showDownloadProgress(it) }
+                }
+            }
+        }
+    }
+
+    private fun showDownloadProgress(progress: Float?) {
+        val bar = binding.downloadProgress
+        when {
+            progress == null -> bar.visibility = View.INVISIBLE
+            progress < 0f -> {
+                bar.visibility = View.VISIBLE
+                bar.isIndeterminate = true
+            }
+            else -> {
+                if (bar.isIndeterminate) bar.isIndeterminate = false
+                bar.visibility = View.VISIBLE
+                bar.setProgressCompat((progress * 1000).toInt(), false)
             }
         }
     }

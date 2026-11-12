@@ -5,6 +5,17 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@color/app_background">
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/downloadProgress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:indeterminate="false"
+        android:max="1000"
+        android:visibility="invisible"
+        app:indicatorColor="@color/base_white"
+        app:trackColor="@android:color/transparent"
+        app:trackThickness="2dp" />
+
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/fragmentContainer"

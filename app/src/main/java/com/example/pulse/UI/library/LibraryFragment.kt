@@ -24,6 +24,7 @@ import com.example.pulse.ui.common.TrackOptionsSheet
 import com.example.pulse.ui.common.tracksText
 import com.example.pulse.ui.player.PlayerViewModel
 import com.example.pulse.ui.playlists.AddToPlaylistFragment
+import com.example.pulse.data.TrackRepository
 import kotlinx.coroutines.launch
 
 class LibraryFragment : Fragment(R.layout.fragment_library) {
@@ -31,6 +32,7 @@ class LibraryFragment : Fragment(R.layout.fragment_library) {
     private var _binding: FragmentLibraryBinding? = null
     private val binding get() = _binding!!
     private lateinit var trackAdapter: TrackAdapter
+    private lateinit var trackRepository: TrackRepository
     private val playerViewModel: PlayerViewModel by activityViewModels()
     private val libraryViewModel: LibraryViewModel by activityViewModels()
     private var shownTracks: List<Track> = emptyList()
@@ -97,7 +99,13 @@ class LibraryFragment : Fragment(R.layout.fragment_library) {
         TrackOptionsSheet.show(
             requireContext(),
             track,
-            listOf(SheetAction("Добавить в плейлист") { openAddToPlaylist(track) })
+            listOf(
+                SheetAction("Добавить в плейлист") { openAddToPlaylist(track) },
+                SheetAction("Удалить из библиотеки") {
+                }
+//                        trackRepository.removeUnavailable()
+                )
+
         )
     }
 
