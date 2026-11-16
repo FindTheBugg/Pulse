@@ -9,7 +9,11 @@ import com.example.pulse.R
 import com.example.pulse.data.Track
 import com.example.pulse.databinding.BottomSheetTrackOptionsBinding
 import com.google.android.material.bottomsheet.BottomSheetDialog
-data class SheetAction(val title: String, val onClick: () -> Unit)
+data class SheetAction(
+    val title: String,
+    val destructive: Boolean = false,
+    val onClick: () -> Unit
+)
 
 object TrackOptionsSheet {
 
@@ -28,6 +32,7 @@ object TrackOptionsSheet {
                 false
             ) as TextView
             row.text = action.title
+            if (action.destructive) row.setTextColor(Color.parseColor("#FF5C5C"))
             row.setOnClickListener {
                 dialog.dismiss()
                 action.onClick()

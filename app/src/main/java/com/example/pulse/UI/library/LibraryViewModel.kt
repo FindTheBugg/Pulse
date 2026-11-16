@@ -114,6 +114,19 @@ class LibraryViewModel(application: Application) : AndroidViewModel(application)
             _messages.send(parts.joinToString(", ").replaceFirstChar { it.uppercase() })
         }
     }
+
+    fun removeTrack(track: Track) {
+        viewModelScope.launch {
+            try {
+                repository.removeTrack(track)
+                _messages.send("Трек удалён из библиотеки")
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _messages.send("Не удалось удалить трек")
+            }
+        }
+    }
     fun checkLibrary(manual: Boolean) {
         if (_isRefreshing.value) {
             if (manual) _messages.trySend("Проверка уже идёт")

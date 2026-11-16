@@ -1,5 +1,6 @@
 package com.example.pulse.ui.library
 
+import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
@@ -87,26 +88,28 @@ class LibraryFragment : Fragment(R.layout.fragment_library) {
     }
 
     private fun showTrackOptions(track: Track) {
-        if (track.id in playerViewModel.unavailableIds.value) {
-            Toast.makeText(
-                requireContext(),
-                "Файл недоступен: добавить в плейлист нельзя",
-                Toast.LENGTH_SHORT
-            ).show()
-            return
+        val actions = mutableListOf<SheetAction>()
+
+        if (track.id !in playerViewModel.unavailableIds.value) {
+            actions += SheetAction("Добавить в плейлист") { openAddToPlaylist(track) }
+        }
+        actions += SheetAction("Удалить из библиотеки", destructive = true) {
+            showDeleteDialog(track)
         }
 
-        TrackOptionsSheet.show(
-            requireContext(),
-            track,
-            listOf(
-                SheetAction("Добавить в плейлист") { openAddToPlaylist(track) },
-                SheetAction("Удалить из библиотеки") {
-                }
-//                        trackRepository.removeUnavailable()
-                )
+        TrackOptionsSheet.show(requireContext(), track, actions)
+    }
 
-        )
+    private fun showDeleteDialog(track: Track) {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Удалить трек?")
+            .setMessage(
+                "«${track.title}» будет удалён из библиотеки и из всех плейлистов. " +
+                        "Файл на телефоне останется."
+            )
+            .setPositiveButton("Удалить") { _, _ -> libraryViewModel.removeTrack(track) }
+            .setNegativeButton("Отмена", null)
+            .show()
     }
 
     private fun openAddToPlaylist(track: Track) {

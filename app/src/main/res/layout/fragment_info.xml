@@ -17,16 +17,17 @@
             android:id="@+id/btnBack"
             android:layout_width="48dp"
             android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Назад"
             android:padding="8dp"
-            android:src="@drawable/btn_back"
             android:scaleType="fitCenter"
-            android:background="@android:color/transparent"
-            android:textSize="28sp" />
+            android:src="@drawable/btn_back" />
 
         <TextView
-            android:id="@+id/tvPlaylistName"
+            android:id="@+id/tvTitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
             android:layout_weight="1"
             android:ellipsize="end"
             android:maxLines="1"
@@ -36,17 +37,19 @@
             android:textStyle="bold" />
     </LinearLayout>
 
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:paddingBottom="16dp"
+        android:scrollbars="none">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:text="1 Реализовал кнопки перемешать и случайный
-        порядок на экране плеера&#010;2 Реализовал обновлениеудаленных треков
-        (автоматическое и по кнопке) списка на экране
-        библиотеки&#010;3 Реализовал экран нововведений&#010;4 Реализовал mini плеер&#010;5 Реализовал чтение метаданных картинки альбома&#010;6 Небольшие правки по UI&#010;7 Новые баги 🌸"
-        android:textAlignment="textStart"
-        android:textColor="@color/base_white"
-        android:textSize="15sp" />
+        <LinearLayout
+            android:id="@+id/changelogContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+    </ScrollView>
 
 </LinearLayout>

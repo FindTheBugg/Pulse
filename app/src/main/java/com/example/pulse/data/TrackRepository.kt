@@ -68,6 +68,19 @@ class TrackRepository(context: Context) {
         missing.size
     }
 
+    suspend fun removeTrack(track: Track) = withContext(Dispatchers.IO) {
+        try {
+            appContext.contentResolver.releasePersistableUriPermission(
+                track.uri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION
+            )
+        } catch (_: SecurityException) { }
+
+        trackDao.deleteByIds(listOf(track.id))
+        PlaybackIssues.markAvailable(track.id)
+        CoverStore(appContext).remove(track.id)
+    }
+
     private fun isAccessible(uri: Uri): Boolean = try {
         appContext.contentResolver.openAssetFileDescriptor(uri, "r")?.close()
         true

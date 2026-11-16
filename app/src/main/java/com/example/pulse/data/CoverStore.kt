@@ -63,6 +63,13 @@ class CoverStore(context: Context) {
         dir.listFiles()?.forEach { it.delete() }
     }
 
+    fun remove(trackId: String) {
+        memory.remove(trackId)
+        val name = nameFor(trackId)
+        File(dir, "$name.jpg").delete()
+        File(dir, "$name.none").delete()
+    }
+
     private fun decodeScaled(bytes: ByteArray): Bitmap? {
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
@@ -82,7 +89,6 @@ class CoverStore(context: Context) {
 
     private companion object {
         const val MAX_SIDE = 800
-
         val memory = object : LruCache<String, Bitmap>(24 * 1024 * 1024) {
             override fun sizeOf(key: String, value: Bitmap) = value.byteCount
         }
